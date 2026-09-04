@@ -1,5 +1,6 @@
 # Virtual environments
 .venv/
+.venv-*/
 venv/
 env/
 ENV/
@@ -15,7 +16,7 @@ build/
 dist/
 
 # Project runtime output / real input (keep input.example.txt tracked)
-output/
+output*/
 run.log
 input.txt
 
@@ -27,3 +28,5 @@ Thumbs.db
 
 # Claude / Remember plugin local state
 .remember/
+
+test_fr.txt

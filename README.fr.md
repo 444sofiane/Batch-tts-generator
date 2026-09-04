@@ -1,8 +1,11 @@
 # Générateur de TTS par lot
 
-Génère plusieurs extraits audio via le modèle TTS PyTorch de Kyutai
-(`kyutai-labs/delayed-streams-modeling`) et les concatène par groupe en
-fichiers `.wav`.
+Génère plusieurs extraits audio et les concatène par groupe en fichiers
+`.wav`. Trois moteurs sont disponibles : le modèle TTS PyTorch de Kyutai
+(`kyutai-labs/delayed-streams-modeling`, par défaut),
+[Tortoise-TTS](https://huggingface.co/spaces/Manmay/tortoise-tts) (via
+`--model tortoise`), et [Breeze-TTS 2](https://huggingface.co/BreezeBlue/Breeze-TTS-2)
+(via `--model breeze`).
 
 ## 1. Installer les dépendances
 
@@ -98,3 +101,140 @@ ne perd pas sa progression.
 ```bash
 nohup python generate_and_concat.py input.txt --output-dir output --all-fr --device cuda --yes > run.log 2>&1 &
 ```
+
+## Utiliser le moteur Tortoise-TTS
+
+Passez `--model tortoise` pour remplacer Kyutai par
+[Tortoise-TTS](https://huggingface.co/spaces/Manmay/tortoise-tts). C'est un
+modèle distinct, avec des compromis différents :
+
+- **Anglais uniquement** — combiner `--model tortoise` avec `--language fr`
+  est rejeté.
+- **Les voix sont des presets intégrés**, pas un chemin dans un dépôt de
+  voix HF : passez un nom de preset à `--voice` (par ex. `tom`, `angie`,
+  `lj` ; voir `tortoise/voices/` dans le package installé pour la liste
+  complète).
+- **Bien plus lent que Kyutai**, surtout sur CPU — un GPU est fortement
+  recommandé. `--tortoise-preset` contrôle le compromis qualité/vitesse :
+  `ultra_fast`, `fast` (par défaut), `standard`, ou `high_quality`.
+- `--all-voices` fonctionne comme pour Kyutai, mais parcourt les presets
+  intégrés de Tortoise au lieu du dépôt de voix HF. `--all-fr`/`--all-eng`
+  ne s'appliquent pas (les voix Tortoise ne sont pas séparées par langue)
+  et sont rejetées avec `--model tortoise`.
+
+### Fonctionnement du modèle Tortoise
+
+`TextToSpeech()` (dans `load_tortoise_tts()`) ne permet pas de choisir un
+modèle — il charge toujours le même jeu de poids pré-entraînés, depuis le
+dépôt Hugging Face
+[`Manmay/tortoise-tts`](https://huggingface.co/spaces/Manmay/tortoise-tts),
+mis en cache sous `~/.cache/tortoise/models` après le premier lancement.
+Ce n'est pas un modèle unique mais un pipeline de plusieurs réseaux :
+
+- **`autoregressive.pth`** — le modèle principal ; transforme le texte
+  d'entrée en une séquence de jetons audio, conditionnée par les
+  échantillons de voix fournis.
+- **`clvp2.pth`** (et éventuellement `cvvp.pth`) — évaluent plusieurs
+  candidats générés et ne gardent que ceux qui correspondent le mieux au
+  texte et à la voix ciblée.
+- **`diffusion_decoder.pth`** — transforme les jetons audio retenus en un
+  spectrogramme mel via un processus de diffusion. C'est l'étape lente ;
+  `--tortoise-preset` contrôle le nombre d'étapes de diffusion effectuées
+  (`ultra_fast` = le moins d'étapes/qualité la plus basse, `high_quality`
+  = le plus d'étapes/le plus lent).
+- **`vocoder.pth`** — convertit le spectrogramme mel en forme d'onde
+  audio finale.
+
+`--voice` et `--tortoise-preset` sont donc les deux seuls réglages que ce
+script permet de changer — quels échantillons de conditionnement sont
+utilisés, et combien de calcul le décodeur de diffusion y consacre. Les
+poids eux-mêmes ne sont pas remplaçables sans modifier
+`load_tortoise_tts()` pour lui passer un `models_dir` personnalisé.
+
+**Installation :** Tortoise-TTS est une dépendance séparée et plus lourde,
+non incluse dans `requirements.txt`, et elle épingle un `transformers`/
+`tokenizers` ancien qui n'a pas de wheel précompilée pour Python 3.12 (le
+`.venv` principal) — l'installer là échoue directement, ou nécessite de
+compiler `tokenizers` depuis les sources (toolchain Rust, avec en plus des
+conflits possibles entre versions anciennes et récentes des dépendances).
+La solution la plus simple est un **venv Python 3.11 séparé** dédié à
+Tortoise, puisque `tokenizers` a bien une wheel précompilée pour 3.11 :
+
+```bash
+uv venv --python 3.11 .venv-tortoise
+uv pip install -r requirements.txt --python .venv-tortoise/Scripts/python.exe
+uv pip install torch --index-url https://download.pytorch.org/whl/cpu --python .venv-tortoise/Scripts/python.exe
+uv pip install tortoise-tts --python .venv-tortoise/Scripts/python.exe
+# torchaudio n'est pas déclaré comme dépendance de tortoise-tts mais est
+# requis à l'import — installez-le épinglé à la même version que le torch
+# ci-dessus, sinon vous obtiendrez une erreur de chargement d'extension
+# native :
+uv pip install "torchaudio==2.7.1" --index-url https://download.pytorch.org/whl/cpu --python .venv-tortoise/Scripts/python.exe
+```
+
+(Remplacez l'URL d'index et la version de `torch`/`torchaudio` par une
+version CUDA si vous avez un GPU — voir l'étape d'installation CPU/GPU
+ci-dessus — en gardant les deux versions identiques.)
+
+```bash
+.venv-tortoise/Scripts/python.exe generate_and_concat.py input.example.txt --model tortoise --voice tom --device cuda
+```
+
+## Utiliser le moteur Breeze-TTS
+
+Passez `--model breeze` pour utiliser
+[Breeze-TTS 2](https://huggingface.co/BreezeBlue/Breeze-TTS-2), un modèle à
+poids ouverts très performant — mais une intégration plus lourde, réservée
+à Linux/GPU :
+
+- **Linux + GPU CUDA uniquement** (développé/testé sur un GPU de classe
+  NVIDIA 4090 ; pas de mode CPU). Ne fonctionnera pas sur la configuration
+  Windows de développement de ce projet — c'est prévu pour un serveur Linux.
+- **Anglais/chinois uniquement** — `--language fr` est rejeté avec
+  `--model breeze`.
+- **Non installable via pip** : vous clonez le dépôt
+  [breeze-tts](https://github.com/breezeblue-ai/breeze-tts) et ses packages
+  `breeze_infer`/`models` sont importés directement depuis ce clone —
+  pointez `--breeze-repo-dir` dessus, et `--breeze-model-dir` vers les
+  poids du modèle téléchargés (un téléchargement séparé depuis Hugging
+  Face).
+- **Pas de catalogue de voix** — `--voice`/`--all-voices`/`--all-fr`/
+  `--all-eng` sont tous rejetés avec `--model breeze`. Une voix est soit :
+  - **clonée** à partir d'un extrait de référence : `--breeze-ref-audio
+    ref.wav --breeze-ref-text "transcription exacte de ref.wav"`
+  - **conçue** à partir d'une description textuelle, sans audio de
+    référence : simplement `--breeze-instruction "une voix calme et
+    grave"`
+  - ou les deux ensemble (**direction de voix**) : audio/texte de
+    référence *plus* une instruction, qui clone l'identité du locuteur de
+    référence tout en superposant l'instruction de diction.
+- `--breeze-cfg-scale` (par défaut `1.0`, comme dans `infer.py` — les
+  exemples d'utilisation de Breeze utilisent `4` pour la conception/
+  direction de voix) et `--breeze-seed` (par défaut `42`) ajustent la
+  génération ; `--breeze-fast` active le mode rapide de Breeze
+  (préchauffe/CUDA graphs).
+
+**Installation** (sur le serveur GPU Linux, pas cette machine de
+développement) :
+
+```bash
+git clone https://github.com/breezeblue-ai/breeze-tts.git
+cd breeze-tts && python -m pip install -r requirements.txt && cd ..
+hf download BreezeBlue/Breeze-TTS-2 --local-dir breeze-tts-2-weights
+```
+
+```bash
+python generate_and_concat.py input.example.txt --model breeze \
+  --breeze-repo-dir breeze-tts --breeze-model-dir breeze-tts-2-weights \
+  --breeze-ref-audio ref.wav --breeze-ref-text "Transcription exacte de ref.wav"
+```
+
+**Remarque :** les poids du modèle Breeze-TTS-2 sont sous la licence
+Research and Non-Commercial de BreezeBlue (le code d'inférence lui-même est
+sous Apache 2.0) — un usage commercial nécessite un abonnement payant via
+breezeblue.ai.
+
+**Réserve sur les tests :** ce moteur a été implémenté à partir du code
+source publié de Breeze (`infer.py`) mais n'a pas été exécuté de bout en
+bout, car cela nécessite Linux + un GPU CUDA que cet environnement de
+développement n'a pas. Testez-le sur votre serveur avant de vous y fier.
