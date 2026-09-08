@@ -1,11 +1,12 @@
 # Générateur de TTS par lot
 
 Génère plusieurs extraits audio et les concatène par groupe en fichiers
-`.wav`. Trois moteurs sont disponibles : le modèle TTS PyTorch de Kyutai
+`.wav`. Quatre moteurs sont disponibles : le modèle TTS PyTorch de Kyutai
 (`kyutai-labs/delayed-streams-modeling`, par défaut),
 [Tortoise-TTS](https://huggingface.co/spaces/Manmay/tortoise-tts) (via
-`--model tortoise`), et [Breeze-TTS 2](https://huggingface.co/BreezeBlue/Breeze-TTS-2)
-(via `--model breeze`).
+`--model tortoise`), [Breeze-TTS 2](https://huggingface.co/BreezeBlue/Breeze-TTS-2)
+(via `--model breeze`), et l'API cloud de
+[Cartesia](https://play.cartesia.ai/text-to-speech) (via `--model cartesia`).
 
 ## 1. Installer les dépendances
 
@@ -238,3 +239,78 @@ breezeblue.ai.
 source publié de Breeze (`infer.py`) mais n'a pas été exécuté de bout en
 bout, car cela nécessite Linux + un GPU CUDA que cet environnement de
 développement n'a pas. Testez-le sur votre serveur avant de vous y fier.
+
+## Utiliser le moteur Cartesia
+
+Passez `--model cartesia` pour utiliser les modèles Sonic de
+[Cartesia](https://play.cartesia.ai/text-to-speech). Contrairement aux trois
+autres moteurs, c'est une **API cloud, pas un modèle local** — pas de
+téléchargement, pas de GPU, mais un compte est nécessaire et chaque extrait
+appelle leurs serveurs :
+
+- **Nécessite une variable d'environnement `CARTESIA_API_KEY`**. Récupérez
+  une clé sur [play.cartesia.ai](https://play.cartesia.ai/text-to-speech) et
+  définissez-la avant de lancer le script (valable seulement pour la session
+  de terminal en cours) :
+  ```powershell
+  # PowerShell
+  $env:CARTESIA_API_KEY = "sk_car_..."
+  ```
+  ```bash
+  # bash
+  export CARTESIA_API_KEY=sk_car_...
+  ```
+  Son absence est vérifiée en amont et rejetée avec un message clair avant
+  toute génération.
+- **Les voix sont celles de votre bibliothèque Cartesia**, pas un nom de
+  fichier ni un preset : passez le `voice_id` (un UUID) d'une voix à
+  `--voice`. Trouvez-le en choisissant une voix sur
+  [play.cartesia.ai](https://play.cartesia.ai/text-to-speech) et en copiant
+  son id, ou via `client.voices.list()` dans le SDK.
+- **Anglais et français** sont tous deux supportés — `--language` est
+  transmis directement à l'API de Cartesia, au lieu de seulement choisir une
+  voix par défaut comme pour Kyutai. (L'API de Cartesia accepte d'autres
+  codes de langue, mais l'option `--language` de ce script est pour l'instant
+  limitée à `en`/`fr`, comme pour les autres moteurs.)
+- `--cartesia-model` choisit le modèle (par défaut `sonic-2`, une version
+  stable et figée plutôt qu'un alias mouvant `sonic-latest`, pour qu'un lot
+  généré aujourd'hui sonne pareil si vous le régénérez plus tard). Voir
+  [play.cartesia.ai](https://play.cartesia.ai/text-to-speech) pour les
+  autres modèles disponibles (par ex. `sonic-turbo` pour une latence plus
+  faible).
+- `--all-voices` parcourt toutes les voix de votre compte Cartesia au lieu
+  d'un catalogue fixe. **Chaque extrait est un appel API payant** — le
+  message de confirmation avant lancement met en garde sur les
+  crédits/quota du compte plutôt que d'afficher une estimation de temps,
+  mais aucune estimation en euros/dollars n'est calculée ; vérifiez les
+  tarifs actuels sur
+  [play.cartesia.ai](https://play.cartesia.ai/text-to-speech) avant un
+  lancement à grande échelle. `--all-fr`/`--all-eng` ne s'appliquent pas et
+  sont rejetées avec `--model cartesia`.
+
+**Installation :** le package `cartesia` est une dépendance séparée, non
+incluse dans `requirements.txt` (un client API léger, sans dépendances ML
+lourdes — s'installe proprement dans le `.venv` principal, pas besoin d'un
+venv séparé) :
+
+```bash
+uv pip install cartesia
+```
+
+```powershell
+# PowerShell
+$env:CARTESIA_API_KEY = "sk_car_..."
+python generate_and_concat.py input.example.txt --model cartesia --voice e07c00bc-4134-4eae-9ea4-1a55fb45746b
+```
+```bash
+# bash
+export CARTESIA_API_KEY=sk_car_...
+python generate_and_concat.py input.example.txt --model cartesia --voice e07c00bc-4134-4eae-9ea4-1a55fb45746b
+```
+
+**Réserve sur les tests :** ce moteur a été implémenté et vérifié par
+rapport au code source/exemples publiés du SDK Python de Cartesia (forme
+des imports, paramètres de `tts.generate_sse`, `voices.list()`), mais n'a
+pas été testé contre l'API réelle, faute d'un compte/clé API Cartesia dans
+cet environnement de développement. Testez un seul extrait avant de lancer
+`--all-voices`.

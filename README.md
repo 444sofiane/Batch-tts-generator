@@ -1,10 +1,11 @@
 # TTS batch generator
 
 Generates multiple TTS clips and concatenates them per group into `.wav`
-files. Supports three backends: Kyutai's PyTorch TTS model
+files. Supports four backends: Kyutai's PyTorch TTS model
 (`kyutai-labs/delayed-streams-modeling`, the default), [Tortoise-TTS](https://huggingface.co/spaces/Manmay/tortoise-tts)
-(via `--model tortoise`), and [Breeze-TTS 2](https://huggingface.co/BreezeBlue/Breeze-TTS-2)
-(via `--model breeze`).
+(via `--model tortoise`), [Breeze-TTS 2](https://huggingface.co/BreezeBlue/Breeze-TTS-2)
+(via `--model breeze`), and [Cartesia](https://play.cartesia.ai/text-to-speech)'s
+cloud API (via `--model cartesia`).
 
 ## 1. Install dependencies
 
@@ -211,3 +212,70 @@ use needs a paid subscription through breezeblue.ai.
 source (`infer.py`) but not run end-to-end, since it requires Linux + a CUDA
 GPU this dev environment doesn't have. Smoke-test it on your server before
 relying on it.
+
+## Using the Cartesia backend
+
+Pass `--model cartesia` to use [Cartesia](https://play.cartesia.ai/text-to-speech)'s
+Sonic models. Unlike the other three backends, it's a **cloud API, not a
+local model** — no download, no GPU, but it does need an account and calls
+their servers for every clip:
+
+- **Requires a `CARTESIA_API_KEY`** environment variable. Get one at
+  [play.cartesia.ai](https://play.cartesia.ai/text-to-speech) and set it
+  before running (lasts for the current terminal session only):
+  ```powershell
+  # PowerShell
+  $env:CARTESIA_API_KEY = "sk_car_..."
+  ```
+  ```bash
+  # bash
+  export CARTESIA_API_KEY=sk_car_...
+  ```
+  Missing/unset is checked upfront and rejected with a clear error before
+  any clips are generated.
+- **Voices are your Cartesia voice library**, not a filename or preset name:
+  pass a voice's `voice_id` (a UUID) to `--voice`. Find one by picking a
+  voice on [play.cartesia.ai](https://play.cartesia.ai/text-to-speech) and
+  copying its id, or via `client.voices.list()` in the SDK.
+- **English and French** are both supported — `--language` is passed
+  straight through to Cartesia's API instead of only picking a default
+  voice like it does for Kyutai. (Cartesia's own API accepts other language
+  codes too, but this script's `--language` flag is currently limited to
+  `en`/`fr`, same as the other backends.)
+- `--cartesia-model` picks the model (default `sonic-2`, a pinned stable
+  release rather than a moving `sonic-latest` alias, so a batch generated
+  today sounds the same if you regenerate it later). See
+  [play.cartesia.ai](https://play.cartesia.ai/text-to-speech) for other
+  available models (e.g. `sonic-turbo` for lower latency).
+- `--all-voices` loops over every voice in your Cartesia account instead of
+  a fixed catalog. **Each clip is a paid API call** — the pre-run prompt
+  warns about account credits/quota instead of printing a time estimate,
+  but there's no dollar estimate built in; check
+  [play.cartesia.ai](https://play.cartesia.ai/text-to-speech) for current
+  pricing before running this at scale. `--all-fr`/`--all-eng` don't apply
+  and are rejected with `--model cartesia`.
+
+**Install:** the `cartesia` package is a separate dependency not included in
+`requirements.txt` (a lightweight API client, no heavy ML dependencies —
+installs cleanly into the main `.venv`, no separate venv needed):
+
+```bash
+uv pip install cartesia
+```
+
+```powershell
+# PowerShell
+$env:CARTESIA_API_KEY = "sk_car_..."
+python generate_and_concat.py input.example.txt --model cartesia --voice e07c00bc-4134-4eae-9ea4-1a55fb45746b
+```
+```bash
+# bash
+export CARTESIA_API_KEY=sk_car_...
+python generate_and_concat.py input.example.txt --model cartesia --voice e07c00bc-4134-4eae-9ea4-1a55fb45746b
+```
+
+**Testing caveat:** this backend was implemented and validated against
+Cartesia's published Python SDK source/examples (import shape, `tts.generate_sse`
+parameters, `voices.list()`), but not run against the live API, since that
+requires a Cartesia account/API key this dev environment doesn't have.
+Smoke-test a single clip before running `--all-voices`.

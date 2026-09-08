@@ -1,5 +1,6 @@
 import argparse
 import functools
+import os
 import re
 import sys
 from collections.abc import Callable
@@ -51,6 +52,11 @@ ROUGH_SECONDS_PER_CLIP_TORTOISE = {
 BREEZE_MAX_NEW_TOKENS = 1500
 BREEZE_MAX_SEQ_LEN = 2048
 BREEZE_REPETITION_PENALTY = 1.1
+
+# Sample rate requested from Cartesia's API for raw PCM output. Cartesia
+# supports several rates; 44100 is used consistently so every clip and voice
+# shares one rate regardless of which model/voice generated it.
+CARTESIA_SAMPLE_RATE = 44100
 
 
 def parse_input(path: Path) -> list[tuple[str, list[str]]]:
@@ -310,6 +316,100 @@ def run_single_voice_breeze(args: argparse.Namespace, groups) -> None:
     )
 
 
+def load_cartesia_client():
+    """Lazily construct the Cartesia API client.
+
+    Imported here rather than at module scope so that installing the
+    `cartesia` package (a separate, cloud-API-only dependency - see README)
+    is only required when --model cartesia is actually used. Assumes
+    CARTESIA_API_KEY has already been validated present (see main()).
+    """
+    from cartesia import Cartesia
+
+    return Cartesia(api_key=os.environ["CARTESIA_API_KEY"])
+
+
+def synthesize_clip_cartesia(client, voice_id: str, model_id: str, language: str, text: str) -> np.ndarray:
+    """Run one line of text through Cartesia's cloud API and return float32 PCM."""
+    chunks = []
+    stream = client.tts.generate_sse(
+        model_id=model_id,
+        transcript=text,
+        voice=voice_id,
+        language=language,
+        output_format={
+            "container": "raw",
+            "encoding": "pcm_f32le",
+            "sample_rate": CARTESIA_SAMPLE_RATE,
+        },
+    )
+    for event in stream:
+        if event.type == "chunk" and event.audio:
+            chunks.append(event.audio)
+        elif event.type == "error":
+            raise RuntimeError(f"Cartesia error: {event.title}: {event.message}")
+    return np.frombuffer(b"".join(chunks), dtype=np.float32)
+
+
+def list_all_cartesia_voices(client) -> list[tuple[str, str]]:
+    """Every (voice_id, name) pair in this Cartesia account's voice library."""
+    return sorted(
+        ((voice.id, voice.name) for voice in client.voices.list()),
+        key=lambda pair: pair[1],
+    )
+
+
+def run_single_voice_cartesia(args: argparse.Namespace, groups) -> None:
+    client = load_cartesia_client()
+    synthesize_fn = functools.partial(
+        synthesize_clip_cartesia, client, args.voice, args.cartesia_model, args.language
+    )
+    generate_groups_for_voice(
+        synthesize_fn, CARTESIA_SAMPLE_RATE, groups, args.output_dir, args.gap_ms
+    )
+
+
+def run_all_voices_cartesia(args: argparse.Namespace, groups) -> None:
+    client = load_cartesia_client()
+    voices = list_all_cartesia_voices(client)
+    if args.voice_limit:
+        voices = voices[: args.voice_limit]
+
+    clips_per_voice = sum(len(lines) for _, lines in groups)
+    total_clips = clips_per_voice * len(voices)
+    print(
+        f"{len(voices)} voices x {clips_per_voice} clips each = {total_clips} clips.\n"
+        f"Each clip is a call to Cartesia's cloud API ('{args.cartesia_model}' model), "
+        "consuming your account's credits/quota - check play.cartesia.ai for current "
+        "pricing before running this at scale."
+    )
+    if not args.yes and input("Continue? [y/N] ").strip().lower() != "y":
+        print("Aborted.")
+        return
+
+    write_voices_manifest(
+        args.output_dir, [f"{voice_id} ({name})" for voice_id, name in voices]
+    )
+
+    for index, (voice_id, name) in enumerate(tqdm.tqdm(voices, desc="voices"), start=1):
+        try:
+            synthesize_fn = functools.partial(
+                synthesize_clip_cartesia, client, voice_id, args.cartesia_model, args.language
+            )
+            generate_groups_for_voice(
+                synthesize_fn,
+                CARTESIA_SAMPLE_RATE,
+                groups,
+                args.output_dir,
+                args.gap_ms,
+                filename_suffix=str(index),
+            )
+        except Exception as e:
+            # A single bad/rate-limited voice shouldn't abort a run spanning
+            # the whole account's voice library.
+            print(f"Skipping voice {name!r} ({voice_id}) after error: {e!r}")
+
+
 def write_voices_manifest(output_dir: Path, voice_files: list[str]) -> None:
     """Index -> source voice path, since flat multi-voice filenames (e.g.
     'intro47.wav') can't carry that information themselves."""
@@ -439,6 +539,13 @@ def run(args: argparse.Namespace) -> None:
         run_single_voice_breeze(args, groups)
         return
 
+    if args.model == "cartesia":
+        if args.all_voices:
+            run_all_voices_cartesia(args, groups)
+        else:
+            run_single_voice_cartesia(args, groups)
+        return
+
     print("Loading model...")
     checkpoint_info = CheckpointInfo.from_hf_repo(args.hf_repo)
     tts_model = TTSModel.from_checkpoint_info(
@@ -462,13 +569,15 @@ def main() -> None:
     parser.add_argument(
         "--model",
         type=str,
-        choices=["kyutai", "tortoise", "breeze"],
+        choices=["kyutai", "tortoise", "breeze", "cartesia"],
         default="kyutai",
         help=(
             "TTS backend to use (default: kyutai). tortoise requires the separate "
             "tortoise-tts package (see README) and is English-only. breeze requires "
             "a local breeze-tts checkout + downloaded weights (see README), a CUDA "
-            "GPU, and supports English/Chinese, not French."
+            "GPU, and supports English/Chinese, not French. cartesia is a cloud API "
+            "(see README) requiring the `cartesia` package and a CARTESIA_API_KEY "
+            "environment variable - no local weights or GPU needed."
         ),
     )
     parser.add_argument(
@@ -482,7 +591,12 @@ def main() -> None:
         type=str,
         choices=sorted(DEFAULT_VOICE_BY_LANGUAGE),
         default="en",
-        help="Picks a default voice for this language (ignored if --voice is set; --model kyutai only)",
+        help=(
+            "For --model kyutai: picks a default voice for this language (ignored "
+            "if --voice is set). For --model cartesia: passed straight through as "
+            "the API's language parameter. Ignored by --model tortoise/breeze "
+            "(English-only; --language fr is rejected for those)."
+        ),
     )
     parser.add_argument(
         "--voice",
@@ -493,8 +607,19 @@ def main() -> None:
             "voice repo root WITHOUT the trailing .<hash>@<epoch>.safetensors suffix "
             "(e.g. 'cml-tts/fr/10087_11650_000028-0002.wav') to fetch from Hugging Face, "
             "or a path to a .safetensors file already on disk. For --model tortoise: the "
-            "name of a built-in preset voice (e.g. 'tom', 'angie') - required unless "
-            "--all-voices is set."
+            "name of a built-in preset voice (e.g. 'tom', 'angie'). For --model cartesia: "
+            "a voice_id from your Cartesia voice library (copy one from "
+            "play.cartesia.ai). Required for tortoise/cartesia unless --all-voices is set."
+        ),
+    )
+    parser.add_argument(
+        "--cartesia-model",
+        type=str,
+        default="sonic-2",
+        help=(
+            "Cartesia model id for --model cartesia (default: 'sonic-2', a pinned "
+            "stable model rather than a moving 'latest' alias, since batches should "
+            "stay reproducible). See play.cartesia.ai for other available models."
         ),
     )
     parser.add_argument(
@@ -590,8 +715,9 @@ def main() -> None:
         action="store_true",
         help=(
             "Generate every group for every voice, instead of just one: every voice "
-            "in the voice repo (901+ voices) for --model kyutai, or every built-in "
-            "preset voice for --model tortoise. Ignores --voice/--language. Writes to "
+            "in the voice repo (901+ voices) for --model kyutai, every built-in "
+            "preset voice for --model tortoise, or every voice in your account's "
+            "library for --model cartesia. Ignores --voice/--language. Writes to "
             "<output-dir>/<group><e if enhanced><voice index>.wav, with a "
             "voices_manifest.txt mapping each index back to its source voice. "
             "Resumable: rerunning the same command skips groups already written."
@@ -655,6 +781,25 @@ def main() -> None:
             parser.error(
                 "Breeze-TTS supports English/Chinese, not French; --language fr "
                 "requires --model kyutai."
+            )
+    elif args.model == "cartesia":
+        if args.all_fr or args.all_eng:
+            parser.error(
+                "--all-fr/--all-eng are --model kyutai only; use --all-voices for "
+                "--model cartesia (it loops over your Cartesia account's voice "
+                "library instead of a language-split repo)."
+            )
+        if not args.all_voices and not args.voice:
+            parser.error(
+                "--model cartesia requires --voice <voice_id> (copy one from "
+                "play.cartesia.ai), or --all-voices to loop over your account's "
+                "whole voice library."
+            )
+        if not os.environ.get("CARTESIA_API_KEY"):
+            parser.error(
+                "CARTESIA_API_KEY is not set. Get a key from play.cartesia.ai and "
+                "export it as an environment variable before running with "
+                "--model cartesia."
             )
 
     run(args)
