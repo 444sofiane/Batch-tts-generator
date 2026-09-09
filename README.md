@@ -1,16 +1,18 @@
-# TTS batch generator
+# Générateur de TTS par lot
 
-Generates multiple TTS clips and concatenates them per group into `.wav`
-files. Supports four backends: Kyutai's PyTorch TTS model
-(`kyutai-labs/delayed-streams-modeling`, the default), [Tortoise-TTS](https://huggingface.co/spaces/Manmay/tortoise-tts)
-(via `--model tortoise`), [Breeze-TTS 2](https://huggingface.co/BreezeBlue/Breeze-TTS-2)
-(via `--model breeze`), and [Cartesia](https://play.cartesia.ai/text-to-speech)'s
-cloud API (via `--model cartesia`).
+Génère plusieurs extraits audio et les concatène par groupe en fichiers
+`.wav`. Quatre moteurs sont disponibles : le modèle TTS PyTorch de Kyutai
+(`kyutai-labs/delayed-streams-modeling`, par défaut),
+[Tortoise-TTS](https://huggingface.co/spaces/Manmay/tortoise-tts) (via
+`--model tortoise`), [Breeze-TTS 2](https://huggingface.co/BreezeBlue/Breeze-TTS-2)
+(via `--model breeze`), et l'API cloud de
+[Cartesia](https://play.cartesia.ai/text-to-speech) (via `--model cartesia`).
 
-## 1. Install dependencies
+## 1. Installer les dépendances
 
-Requires Python 3.12. If you don't have it, [uv](https://docs.astral.sh/uv/)
-can fetch it for you without touching your system Python:
+Nécessite Python 3.12. Si vous ne l'avez pas,
+[uv](https://docs.astral.sh/uv/) peut l'installer pour vous sans toucher à
+votre Python système :
 
 ```bash
 uv venv --python 3.12 .venv
@@ -18,186 +20,210 @@ uv venv --python 3.12 .venv
 uv pip install -r requirements.txt
 ```
 
-(Or with plain pip on an existing Python 3.12: `pip install -r requirements.txt`)
+(Ou avec pip classique sur un Python 3.12 déjà installé :
+`pip install -r requirements.txt`)
 
-**Then install `torch` separately**, matching your hardware (it's not in
-`requirements.txt` because the right build depends on whether you have a
-GPU, and if so which CUDA version your driver supports):
+**Installez ensuite `torch` séparément**, selon votre matériel (il n'est pas
+dans `requirements.txt` car la bonne version dépend de la présence d'un GPU,
+et si oui de la version CUDA supportée par votre pilote) :
 
-- **CPU only** (no GPU, or a GPU too old for CUDA):
+- **CPU uniquement** (pas de GPU, ou GPU trop ancien pour CUDA) :
   ```bash
   pip install torch --index-url https://download.pytorch.org/whl/cpu
   ```
-- **NVIDIA GPU**: check your driver's max supported CUDA version with
-  `nvidia-smi`, then pick a torch build at or *below* that version — a
-  build newer than your driver supports will fail to initialize. E.g. for
-  a driver supporting up to CUDA 12.7:
+- **GPU NVIDIA** : vérifiez la version CUDA maximale supportée par votre
+  pilote avec `nvidia-smi`, puis choisissez une version de torch égale ou
+  *inférieure* — une version plus récente que ce que supporte le pilote
+  échouera à l'initialisation. Par exemple, pour un pilote supportant
+  jusqu'à CUDA 12.7 :
   ```bash
   pip install torch --index-url https://download.pytorch.org/whl/cu126
   ```
 
-## 2. Write your input file
+## 2. Rédiger votre fichier d'entrée
 
-See `input.example.txt`. A `# name` line starts a group; the non-blank lines
-under it are synthesized in order and concatenated into `output/<name>.wav`.
-A blank line ends the group.
+Voir `input.example.txt`. Une ligne `# nom` démarre un groupe ; les lignes
+non vides qui suivent sont synthétisées dans l'ordre puis concaténées dans
+`output/<nom>.wav`. Une ligne vide termine le groupe.
 
-## 3. Run it
+## 3. Lancer le script
 
-Run with no arguments at all (`python generate_and_concat.py`) for a guided
-setup that asks for your input file, backend, and voice, then prints the
-equivalent command line before running it — copy that command into a script
-for repeat/unattended runs (e.g. under `nohup`). Every `--flag` documented
-below still works exactly as before; the wizard is just another way to
-build the same command.
+Lancez le script sans aucun argument (`python generate_and_concat.py`) pour
+une configuration guidée qui demande votre fichier d'entrée, le moteur et la
+voix, puis affiche la commande équivalente avant de l'exécuter — copiez-la
+pour scripter les lancements suivants (par exemple avec `nohup`). Toutes les
+options `--flag` ci-dessous fonctionnent toujours exactement comme avant ;
+l'assistant n'est qu'une autre façon de construire la même commande.
 
 ```bash
 python generate_and_concat.py input.example.txt --output-dir output --gap-ms 300
 ```
 
-The first run downloads the model weights from Hugging Face (a few GB,
-cached afterward). On CPU, generation is slow: expect roughly 30-45 seconds
-per short sentence, regardless of caching — that doesn't improve on later
-runs. A compatible GPU (see above) is much faster via `--device cuda`.
+Le premier lancement télécharge les poids du modèle depuis Hugging Face
+(quelques Go, mis en cache ensuite). Sur CPU, la génération est lente :
+comptez environ 30 à 45 secondes par phrase courte, quel que soit le
+nombre de lancements — ce temps ne diminue pas avec la mise en cache. Un
+GPU compatible (voir ci-dessus) est bien plus rapide via `--device cuda`.
 
 ## Options
 
-- `--language` — `en` (default) or `fr`. The model itself
-  (`kyutai/tts-1.6b-en_fr`) is a single bilingual model that handles
-  whatever language the input text is in — this flag only picks a
-  matching default voice (an English or French speaker), it doesn't
-  switch models.
-- `--voice` — voice to use (see `kyutai/tts-voices` on Hugging Face for the
-  available options), relative path under that repo. Overrides `--language`.
-- `--device` — `cpu` (default) or `cuda` if you installed a matching
-  CUDA build of torch.
-- `--gap-ms` — silence inserted between clips within a group (default 300ms).
+- `--language` — `en` (par défaut) ou `fr`. Le modèle lui-même
+  (`kyutai/tts-1.6b-en_fr`) est un modèle bilingue unique qui gère la
+  langue du texte fourni en entrée — cette option choisit seulement une
+  voix par défaut adaptée (voix anglaise ou française), elle ne change
+  pas de modèle.
+- `--voice` — voix à utiliser (voir `kyutai/tts-voices` sur Hugging Face
+  pour les options disponibles), chemin relatif dans ce dépôt. Prend le
+  dessus sur `--language`.
+- `--device` — `cpu` (par défaut) ou `cuda` si vous avez installé une
+  version de torch compatible avec CUDA.
+- `--gap-ms` — silence inséré entre les extraits d'un même groupe (300ms
+  par défaut).
 
-## Generating with every voice
+## Générer avec toutes les voix
 
-For building a training dataset across many speakers, three flags run your
-input against a whole set of voices instead of just one:
+Pour constituer un jeu de données d'entraînement sur de nombreuses voix,
+trois options lancent votre texte contre tout un ensemble de voix au lieu
+d'une seule :
 
-- `--all-voices` — every voice in `kyutai/tts-voices` (901+ files).
-- `--all-fr` — just the French voices (`cml-tts/fr/`, ~70 files).
-- `--all-eng` — just the English Expresso voices (`expresso/`, ~103 files).
+- `--all-voices` — toutes les voix de `kyutai/tts-voices` (901+ fichiers).
+- `--all-fr` — uniquement les voix françaises (`cml-tts/fr/`, ~70 fichiers).
+- `--all-eng` — uniquement les voix anglaises Expresso (`expresso/`, ~103
+  fichiers).
 
-These ignore `--voice`/`--language`. Output is flat, not nested per voice:
-`<output-dir>/<group><e if the voice is an "_enhanced" variant><voice
-index>.wav` — e.g. `intro1.wav`, `introe2.wav`. A `voices_manifest.txt` is
-written alongside, mapping each index back to its source voice path.
+Ces options ignorent `--voice`/`--language`. La sortie est plate, pas
+organisée par dossier de voix : `<output-dir>/<groupe><e si la voix est une
+variante "_enhanced"><index de la voix>.wav` — par exemple `intro1.wav`,
+`introe2.wav`. Un fichier `voices_manifest.txt` est écrit à côté, qui
+associe chaque index à sa voix source.
 
-Since this can mean hundreds of voices x every clip in your input, it prints
-a rough time estimate first and asks for confirmation — pass `--yes` to skip
-that (needed if you're running non-interactively, e.g. under `nohup`). Use
-`--voice-limit N` to try it on just the first N voices before committing to
-a full run. It's resumable: rerunning the same command only fills in output
-files that don't exist yet, so an interrupted run doesn't lose progress.
+Comme cela peut représenter des centaines de voix x chaque extrait de votre
+texte, le script affiche d'abord une estimation approximative du temps et
+demande confirmation — passez `--yes` pour l'ignorer (nécessaire en
+exécution non interactive, par exemple sous `nohup`). Utilisez
+`--voice-limit N` pour tester sur les N premières voix avant de lancer
+l'exécution complète. C'est reprenable : relancer la même commande ne
+génère que les fichiers de sortie manquants, donc une exécution interrompue
+ne perd pas sa progression.
 
 ```bash
 nohup python generate_and_concat.py input.txt --output-dir output --all-fr --device cuda --yes > run.log 2>&1 &
 ```
 
-## Using the Tortoise-TTS backend
+## Utiliser le moteur Tortoise-TTS
 
-Pass `--model tortoise` to switch from Kyutai to
-[Tortoise-TTS](https://huggingface.co/spaces/Manmay/tortoise-tts). It's a
-separate model with different tradeoffs:
+Passez `--model tortoise` pour remplacer Kyutai par
+[Tortoise-TTS](https://huggingface.co/spaces/Manmay/tortoise-tts). C'est un
+modèle distinct, avec des compromis différents :
 
-- **English only** — combining `--model tortoise` with `--language fr` is
-  rejected.
-- **Voices are built-in presets**, not an HF voice repo path: pass a preset
-  name to `--voice` (e.g. `tom`, `angie`, `lj`; see `tortoise/voices/` in
-  the installed package for the full list).
-- **Much slower than Kyutai**, especially on CPU — a GPU is strongly
-  recommended. `--tortoise-preset` controls the quality/speed tradeoff:
-  `ultra_fast`, `fast` (default), `standard`, or `high_quality`.
-- `--all-voices` works the same way as for Kyutai, but loops over
-  Tortoise's built-in preset voices instead of the HF voice repo.
-  `--all-fr`/`--all-eng` don't apply (Tortoise voices aren't split by
-  language) and are rejected with `--model tortoise`.
+- **Anglais uniquement** — combiner `--model tortoise` avec `--language fr`
+  est rejeté.
+- **Les voix sont des presets intégrés**, pas un chemin dans un dépôt de
+  voix HF : passez un nom de preset à `--voice` (par ex. `tom`, `angie`,
+  `lj` ; voir `tortoise/voices/` dans le package installé pour la liste
+  complète).
+- **Bien plus lent que Kyutai**, surtout sur CPU — un GPU est fortement
+  recommandé. `--tortoise-preset` contrôle le compromis qualité/vitesse :
+  `ultra_fast`, `fast` (par défaut), `standard`, ou `high_quality`.
+- `--all-voices` fonctionne comme pour Kyutai, mais parcourt les presets
+  intégrés de Tortoise au lieu du dépôt de voix HF. `--all-fr`/`--all-eng`
+  ne s'appliquent pas (les voix Tortoise ne sont pas séparées par langue)
+  et sont rejetées avec `--model tortoise`.
 
-### How the Tortoise model works
+### Fonctionnement du modèle Tortoise
 
-`TextToSpeech()` (in `load_tortoise_tts()`) doesn't take a model choice —
-it always loads one fixed set of pretrained weights from the Hugging Face
-repo [`Manmay/tortoise-tts`](https://huggingface.co/spaces/Manmay/tortoise-tts),
-cached under `~/.cache/tortoise/models` after the first run. It's a
-pipeline of several networks rather than a single model:
+`TextToSpeech()` (dans `load_tortoise_tts()`) ne permet pas de choisir un
+modèle — il charge toujours le même jeu de poids pré-entraînés, depuis le
+dépôt Hugging Face
+[`Manmay/tortoise-tts`](https://huggingface.co/spaces/Manmay/tortoise-tts),
+mis en cache sous `~/.cache/tortoise/models` après le premier lancement.
+Ce n'est pas un modèle unique mais un pipeline de plusieurs réseaux :
 
-- **`autoregressive.pth`** — the core model; turns the input text into a
-  sequence of speech tokens, conditioned on the voice samples you provide.
-- **`clvp2.pth`** (and optionally `cvvp.pth`) — score multiple candidate
-  outputs and keep the ones that best match the text and the target voice.
-- **`diffusion_decoder.pth`** — turns the chosen speech tokens into a mel
-  spectrogram through a diffusion process. This is the slow step;
-  `--tortoise-preset` controls how many diffusion steps it runs
-  (`ultra_fast` = fewest/lowest quality, `high_quality` = most/slowest).
-- **`vocoder.pth`** — converts the mel spectrogram into the final
-  waveform.
+- **`autoregressive.pth`** — le modèle principal ; transforme le texte
+  d'entrée en une séquence de jetons audio, conditionnée par les
+  échantillons de voix fournis.
+- **`clvp2.pth`** (et éventuellement `cvvp.pth`) — évaluent plusieurs
+  candidats générés et ne gardent que ceux qui correspondent le mieux au
+  texte et à la voix ciblée.
+- **`diffusion_decoder.pth`** — transforme les jetons audio retenus en un
+  spectrogramme mel via un processus de diffusion. C'est l'étape lente ;
+  `--tortoise-preset` contrôle le nombre d'étapes de diffusion effectuées
+  (`ultra_fast` = le moins d'étapes/qualité la plus basse, `high_quality`
+  = le plus d'étapes/le plus lent).
+- **`vocoder.pth`** — convertit le spectrogramme mel en forme d'onde
+  audio finale.
 
-So `--voice` and `--tortoise-preset` are the only two things this script
-lets you change — which conditioning samples go in, and how much compute
-the diffusion decoder spends. The weights themselves aren't swappable
-without editing `load_tortoise_tts()` to pass a custom `models_dir`.
+`--voice` et `--tortoise-preset` sont donc les deux seuls réglages que ce
+script permet de changer — quels échantillons de conditionnement sont
+utilisés, et combien de calcul le décodeur de diffusion y consacre. Les
+poids eux-mêmes ne sont pas remplaçables sans modifier
+`load_tortoise_tts()` pour lui passer un `models_dir` personnalisé.
 
-**Install:** Tortoise-TTS is a separate, heavier dependency not included in
-`requirements.txt`, and pins an old `transformers`/`tokenizers` that has no
-prebuilt wheel for Python 3.12 (the main `.venv`) — installing it there either
-fails outright or requires building `tokenizers` from source (a Rust
-toolchain, and even then old/new dependency versions can conflict). The
-straightforward fix is a **separate Python 3.11 venv** just for Tortoise,
-since `tokenizers` does have a prebuilt 3.11 wheel:
+**Installation :** Tortoise-TTS est une dépendance séparée et plus lourde,
+non incluse dans `requirements.txt`, et elle épingle un `transformers`/
+`tokenizers` ancien qui n'a pas de wheel précompilée pour Python 3.12 (le
+`.venv` principal) — l'installer là échoue directement, ou nécessite de
+compiler `tokenizers` depuis les sources (toolchain Rust, avec en plus des
+conflits possibles entre versions anciennes et récentes des dépendances).
+La solution la plus simple est un **venv Python 3.11 séparé** dédié à
+Tortoise, puisque `tokenizers` a bien une wheel précompilée pour 3.11 :
 
 ```bash
 uv venv --python 3.11 .venv-tortoise
 uv pip install -r requirements.txt --python .venv-tortoise/Scripts/python.exe
 uv pip install torch --index-url https://download.pytorch.org/whl/cpu --python .venv-tortoise/Scripts/python.exe
 uv pip install tortoise-tts --python .venv-tortoise/Scripts/python.exe
-# torchaudio isn't declared as a tortoise-tts dependency but is required at
-# import time — install it pinned to the same version as the torch above,
-# otherwise you'll hit a native-extension load error:
+# torchaudio n'est pas déclaré comme dépendance de tortoise-tts mais est
+# requis à l'import — installez-le épinglé à la même version que le torch
+# ci-dessus, sinon vous obtiendrez une erreur de chargement d'extension
+# native :
 uv pip install "torchaudio==2.7.1" --index-url https://download.pytorch.org/whl/cpu --python .venv-tortoise/Scripts/python.exe
 ```
 
-(Swap the `torch`/`torchaudio` index URL and pin for a CUDA build if you have
-a GPU — see the CPU/GPU install step above — matching the exact torch version
-you install.)
+(Remplacez l'URL d'index et la version de `torch`/`torchaudio` par une
+version CUDA si vous avez un GPU — voir l'étape d'installation CPU/GPU
+ci-dessus — en gardant les deux versions identiques.)
 
 ```bash
 .venv-tortoise/Scripts/python.exe generate_and_concat.py input.example.txt --model tortoise --voice tom --device cuda
 ```
 
-## Using the Breeze-TTS backend
+## Utiliser le moteur Breeze-TTS
 
-Pass `--model breeze` to use
-[Breeze-TTS 2](https://huggingface.co/BreezeBlue/Breeze-TTS-2), a strong
-open-weight model — but a heavier, Linux/GPU-only integration:
+Passez `--model breeze` pour utiliser
+[Breeze-TTS 2](https://huggingface.co/BreezeBlue/Breeze-TTS-2), un modèle à
+poids ouverts très performant — mais une intégration plus lourde, réservée
+à Linux/GPU :
 
-- **Linux + CUDA GPU only** (developed/tested on an NVIDIA 4090-class GPU;
-  no CPU path). It won't run on this project's Windows dev setup — it's
-  meant for a Linux server.
-- **English/Chinese only** — `--language fr` is rejected with `--model breeze`.
-- **Not pip-installable**: you clone the
-  [breeze-tts](https://github.com/breezeblue-ai/breeze-tts) repo and its
-  `breeze_infer`/`models` packages are imported directly from that checkout
-  — point `--breeze-repo-dir` at it, and `--breeze-model-dir` at the
-  downloaded model weights (a separate download from Hugging Face).
-- **No voice catalog** — `--voice`/`--all-voices`/`--all-fr`/`--all-eng` are
-  all rejected with `--model breeze`. Instead, a voice is either:
-  - **cloned** from a reference clip: `--breeze-ref-audio ref.wav
-    --breeze-ref-text "exact transcript of ref.wav"`
-  - **designed** from a text description, no reference audio: just
-    `--breeze-instruction "a calm, low-pitched voice"`
-  - or both together (**voice direction**): ref audio/text *plus* an
-    instruction, which clones the reference speaker's identity but
-    overlays the instruction's delivery.
-- `--breeze-cfg-scale` (default `1.0`, matching `infer.py`'s own default —
-  Breeze's own usage examples use `4` for voice design/direction) and
-  `--breeze-seed` (default `42`) tune generation; `--breeze-fast` enables
-  Breeze's warmup/CUDA-graph fast path.
+- **Linux + GPU CUDA uniquement** (développé/testé sur un GPU de classe
+  NVIDIA 4090 ; pas de mode CPU). Ne fonctionnera pas sur la configuration
+  Windows de développement de ce projet — c'est prévu pour un serveur Linux.
+- **Anglais/chinois uniquement** — `--language fr` est rejeté avec
+  `--model breeze`.
+- **Non installable via pip** : vous clonez le dépôt
+  [breeze-tts](https://github.com/breezeblue-ai/breeze-tts) et ses packages
+  `breeze_infer`/`models` sont importés directement depuis ce clone —
+  pointez `--breeze-repo-dir` dessus, et `--breeze-model-dir` vers les
+  poids du modèle téléchargés (un téléchargement séparé depuis Hugging
+  Face).
+- **Pas de catalogue de voix** — `--voice`/`--all-voices`/`--all-fr`/
+  `--all-eng` sont tous rejetés avec `--model breeze`. Une voix est soit :
+  - **clonée** à partir d'un extrait de référence : `--breeze-ref-audio
+    ref.wav --breeze-ref-text "transcription exacte de ref.wav"`
+  - **conçue** à partir d'une description textuelle, sans audio de
+    référence : simplement `--breeze-instruction "une voix calme et
+    grave"`
+  - ou les deux ensemble (**direction de voix**) : audio/texte de
+    référence *plus* une instruction, qui clone l'identité du locuteur de
+    référence tout en superposant l'instruction de diction.
+- `--breeze-cfg-scale` (par défaut `1.0`, comme dans `infer.py` — les
+  exemples d'utilisation de Breeze utilisent `4` pour la conception/
+  direction de voix) et `--breeze-seed` (par défaut `42`) ajustent la
+  génération ; `--breeze-fast` active le mode rapide de Breeze
+  (préchauffe/CUDA graphs).
 
-**Install** (on the Linux GPU server, not this dev machine):
+**Installation** (sur le serveur GPU Linux, pas cette machine de
+développement) :
 
 ```bash
 git clone https://github.com/breezeblue-ai/breeze-tts.git
@@ -208,28 +234,31 @@ hf download BreezeBlue/Breeze-TTS-2 --local-dir breeze-tts-2-weights
 ```bash
 python generate_and_concat.py input.example.txt --model breeze \
   --breeze-repo-dir breeze-tts --breeze-model-dir breeze-tts-2-weights \
-  --breeze-ref-audio ref.wav --breeze-ref-text "Exact transcript of ref.wav"
+  --breeze-ref-audio ref.wav --breeze-ref-text "Transcription exacte de ref.wav"
 ```
 
-**Note:** Breeze-TTS-2's model weights are under BreezeBlue's Research and
-Non-Commercial License (the inference code itself is Apache 2.0) — commercial
-use needs a paid subscription through breezeblue.ai.
+**Remarque :** les poids du modèle Breeze-TTS-2 sont sous la licence
+Research and Non-Commercial de BreezeBlue (le code d'inférence lui-même est
+sous Apache 2.0) — un usage commercial nécessite un abonnement payant via
+breezeblue.ai.
 
-**Testing caveat:** this backend was implemented from Breeze's published
-source (`infer.py`) but not run end-to-end, since it requires Linux + a CUDA
-GPU this dev environment doesn't have. Smoke-test it on your server before
-relying on it.
+**Réserve sur les tests :** ce moteur a été implémenté à partir du code
+source publié de Breeze (`infer.py`) mais n'a pas été exécuté de bout en
+bout, car cela nécessite Linux + un GPU CUDA que cet environnement de
+développement n'a pas. Testez-le sur votre serveur avant de vous y fier.
 
-## Using the Cartesia backend
+## Utiliser le moteur Cartesia
 
-Pass `--model cartesia` to use [Cartesia](https://play.cartesia.ai/text-to-speech)'s
-Sonic models. Unlike the other three backends, it's a **cloud API, not a
-local model** — no download, no GPU, but it does need an account and calls
-their servers for every clip:
+Passez `--model cartesia` pour utiliser les modèles Sonic de
+[Cartesia](https://play.cartesia.ai/text-to-speech). Contrairement aux trois
+autres moteurs, c'est une **API cloud, pas un modèle local** — pas de
+téléchargement, pas de GPU, mais un compte est nécessaire et chaque extrait
+appelle leurs serveurs :
 
-- **Requires a `CARTESIA_API_KEY`** environment variable. Get one at
-  [play.cartesia.ai](https://play.cartesia.ai/text-to-speech) and set it
-  before running (lasts for the current terminal session only):
+- **Nécessite une variable d'environnement `CARTESIA_API_KEY`**. Récupérez
+  une clé sur [play.cartesia.ai](https://play.cartesia.ai/text-to-speech) et
+  définissez-la avant de lancer le script (valable seulement pour la session
+  de terminal en cours) :
   ```powershell
   # PowerShell
   $env:CARTESIA_API_KEY = "sk_car_..."
@@ -238,33 +267,38 @@ their servers for every clip:
   # bash
   export CARTESIA_API_KEY=sk_car_...
   ```
-  Missing/unset is checked upfront and rejected with a clear error before
-  any clips are generated.
-- **Voices are your Cartesia voice library**, not a filename or preset name:
-  pass a voice's `voice_id` (a UUID) to `--voice`. Find one by picking a
-  voice on [play.cartesia.ai](https://play.cartesia.ai/text-to-speech) and
-  copying its id, or via `client.voices.list()` in the SDK.
-- **English and French** are both supported — `--language` is passed
-  straight through to Cartesia's API instead of only picking a default
-  voice like it does for Kyutai. (Cartesia's own API accepts other language
-  codes too, but this script's `--language` flag is currently limited to
-  `en`/`fr`, same as the other backends.)
-- `--cartesia-model` picks the model (default `sonic-2`, a pinned stable
-  release rather than a moving `sonic-latest` alias, so a batch generated
-  today sounds the same if you regenerate it later). See
-  [play.cartesia.ai](https://play.cartesia.ai/text-to-speech) for other
-  available models (e.g. `sonic-turbo` for lower latency).
-- `--all-voices` loops over every voice in your Cartesia account instead of
-  a fixed catalog. **Each clip is a paid API call** — the pre-run prompt
-  warns about account credits/quota instead of printing a time estimate,
-  but there's no dollar estimate built in; check
-  [play.cartesia.ai](https://play.cartesia.ai/text-to-speech) for current
-  pricing before running this at scale. `--all-fr`/`--all-eng` don't apply
-  and are rejected with `--model cartesia`.
+  Son absence est vérifiée en amont et rejetée avec un message clair avant
+  toute génération.
+- **Les voix sont celles de votre bibliothèque Cartesia**, pas un nom de
+  fichier ni un preset : passez le `voice_id` (un UUID) d'une voix à
+  `--voice`. Trouvez-le en choisissant une voix sur
+  [play.cartesia.ai](https://play.cartesia.ai/text-to-speech) et en copiant
+  son id, ou via `client.voices.list()` dans le SDK.
+- **Anglais et français** sont tous deux supportés — `--language` est
+  transmis directement à l'API de Cartesia, au lieu de seulement choisir une
+  voix par défaut comme pour Kyutai. (L'API de Cartesia accepte d'autres
+  codes de langue, mais l'option `--language` de ce script est pour l'instant
+  limitée à `en`/`fr`, comme pour les autres moteurs.)
+- `--cartesia-model` choisit le modèle (par défaut `sonic-2`, une version
+  stable et figée plutôt qu'un alias mouvant `sonic-latest`, pour qu'un lot
+  généré aujourd'hui sonne pareil si vous le régénérez plus tard). Voir
+  [play.cartesia.ai](https://play.cartesia.ai/text-to-speech) pour les
+  autres modèles disponibles (par ex. `sonic-turbo` pour une latence plus
+  faible).
+- `--all-voices` parcourt toutes les voix de votre compte Cartesia au lieu
+  d'un catalogue fixe. **Chaque extrait est un appel API payant** — le
+  message de confirmation avant lancement met en garde sur les
+  crédits/quota du compte plutôt que d'afficher une estimation de temps,
+  mais aucune estimation en euros/dollars n'est calculée ; vérifiez les
+  tarifs actuels sur
+  [play.cartesia.ai](https://play.cartesia.ai/text-to-speech) avant un
+  lancement à grande échelle. `--all-fr`/`--all-eng` ne s'appliquent pas et
+  sont rejetées avec `--model cartesia`.
 
-**Install:** the `cartesia` package is a separate dependency not included in
-`requirements.txt` (a lightweight API client, no heavy ML dependencies —
-installs cleanly into the main `.venv`, no separate venv needed):
+**Installation :** le package `cartesia` est une dépendance séparée, non
+incluse dans `requirements.txt` (un client API léger, sans dépendances ML
+lourdes — s'installe proprement dans le `.venv` principal, pas besoin d'un
+venv séparé) :
 
 ```bash
 uv pip install cartesia
@@ -281,32 +315,36 @@ export CARTESIA_API_KEY=sk_car_...
 python generate_and_concat.py input.example.txt --model cartesia --voice e07c00bc-4134-4eae-9ea4-1a55fb45746b
 ```
 
-**Testing caveat:** this backend was implemented and validated against
-Cartesia's published Python SDK source/examples (import shape, `tts.generate_sse`
-parameters, `voices.list()`), but not run against the live API, since that
-requires a Cartesia account/API key this dev environment doesn't have.
-Smoke-test a single clip before running `--all-voices`.
+**Réserve sur les tests :** ce moteur a été implémenté et vérifié par
+rapport au code source/exemples publiés du SDK Python de Cartesia (forme
+des imports, paramètres de `tts.generate_sse`, `voices.list()`), mais n'a
+pas été testé contre l'API réelle, faute d'un compte/clé API Cartesia dans
+cet environnement de développement. Testez un seul extrait avant de lancer
+`--all-voices`.
 
-## Project layout
+## Structure du projet
 
-The implementation lives in the `tts_batch` package; `generate_and_concat.py`
-at the repo root is a thin entry point (`python generate_and_concat.py ...`
-still works exactly as before).
+L'implémentation se trouve dans le paquet `tts_batch` ; `generate_and_concat.py`
+à la racine du dépôt est un point d'entrée minimal (`python
+generate_and_concat.py ...` fonctionne toujours exactement comme avant).
 
-- `tts_batch/input_parsing.py` — parses the `# name` / clip-lines input format.
-- `tts_batch/audio.py` — concatenation, the resumable per-voice generation
-  loop, and the voices-manifest writer, shared by every backend.
-- `tts_batch/backends/` — one file per TTS backend (`kyutai.py`,
-  `tortoise.py`, `breeze.py`, `cartesia.py`), each owning its own CLI flags,
-  argument validation, and generation logic. `base.py` documents the
-  interface a new backend needs to implement.
-- `tts_batch/cli.py` — assembles the argparse parser from the shared flags
-  plus each backend's own, and dispatches validation to the selected
-  backend.
-- `tts_batch/interactive.py` — the guided setup wizard (see "Run it" above).
-- `tts_batch/runner.py` — runs a fully-parsed/validated command.
+- `tts_batch/input_parsing.py` — analyse le format d'entrée `# nom` / lignes
+  d'extraits.
+- `tts_batch/audio.py` — concaténation, boucle de génération par voix
+  reprenable, et écriture du manifeste des voix, partagées par tous les
+  moteurs.
+- `tts_batch/backends/` — un fichier par moteur TTS (`kyutai.py`,
+  `tortoise.py`, `breeze.py`, `cartesia.py`), chacun possédant ses propres
+  options CLI, sa validation d'arguments et sa logique de génération.
+  `base.py` documente l'interface qu'un nouveau moteur doit implémenter.
+- `tts_batch/cli.py` — assemble le parseur argparse à partir des options
+  communes et de celles de chaque moteur, et délègue la validation au
+  moteur sélectionné.
+- `tts_batch/interactive.py` — l'assistant de configuration guidée (voir
+  « Lancer le script » ci-dessus).
+- `tts_batch/runner.py` — exécute une commande entièrement analysée/validée.
 
-Adding a fifth backend means creating one new file in `tts_batch/backends/`
-implementing the shape documented in `base.py`, and adding it to the
-`BACKENDS` dict in `tts_batch/backends/__init__.py` — nothing else needs to
-change.
+Ajouter un cinquième moteur consiste à créer un nouveau fichier dans
+`tts_batch/backends/` implémentant la forme documentée dans `base.py`, puis
+à l'ajouter au dictionnaire `BACKENDS` dans
+`tts_batch/backends/__init__.py` — rien d'autre n'a besoin de changer.
