@@ -238,6 +238,10 @@ their servers for every clip:
   # bash
   export CARTESIA_API_KEY=sk_car_...
   ```
+  Or, to avoid exporting it every session, copy `.env.example` to `.env`
+  and fill in the key — it's loaded automatically (and gitignored, so it's
+  never committed). A real exported environment variable always takes
+  precedence over `.env` if both are set.
   Missing/unset is checked upfront and rejected with a clear error before
   any clips are generated.
 - **Voices are your Cartesia voice library**, not a filename or preset name:

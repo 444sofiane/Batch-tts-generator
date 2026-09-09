@@ -1,7 +1,2 @@
 # intro
-Welcome to this example.
-It shows how lines are grouped into one output file.
-
-# chapter_one
-This is the first clip of chapter one.
-And this is the second clip, appended right after it.
+Ceci est un test de tts utilisant la voix de Inès à partir du modèle sonic de cartesia l'un des plus avancés dans le marché du text to speech

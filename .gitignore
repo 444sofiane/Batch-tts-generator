@@ -4,6 +4,10 @@
 venv/
 env/
 ENV/
+.env/
+
+# Local secrets (API keys, etc.) - see .env.example for the expected keys
+.env
 
 # Python
 __pycache__/
@@ -28,5 +32,7 @@ Thumbs.db
 
 # Claude / Remember plugin local state
 .remember/
+docs/*
 
 test_fr.txt
+input.example.txt

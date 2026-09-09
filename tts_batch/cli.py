@@ -9,7 +9,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from . import interactive, runner
+from . import env, interactive, runner
 from .backends import BACKENDS, kyutai
 
 
@@ -119,6 +119,7 @@ def validate_args(args: argparse.Namespace, parser: argparse.ArgumentParser) -> 
 
 
 def main() -> None:
+    env.load_dotenv()
     parser = build_parser()
     if len(sys.argv) == 1:
         argv = interactive.run_wizard(parser)

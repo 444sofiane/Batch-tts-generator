@@ -267,6 +267,11 @@ appelle leurs serveurs :
   # bash
   export CARTESIA_API_KEY=sk_car_...
   ```
+  Ou, pour éviter de la redéfinir à chaque session, copiez `.env.example`
+  vers `.env` et renseignez la clé — elle est chargée automatiquement (et
+  `.env` est ignoré par git, donc jamais commité). Une variable
+  d'environnement réellement exportée est toujours prioritaire sur `.env`
+  si les deux sont définies.
   Son absence est vérifiée en amont et rejetée avec un message clair avant
   toute génération.
 - **Les voix sont celles de votre bibliothèque Cartesia**, pas un nom de
