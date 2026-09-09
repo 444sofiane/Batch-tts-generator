@@ -44,6 +44,13 @@ A blank line ends the group.
 
 ## 3. Run it
 
+Run with no arguments at all (`python generate_and_concat.py`) for a guided
+setup that asks for your input file, backend, and voice, then prints the
+equivalent command line before running it — copy that command into a script
+for repeat/unattended runs (e.g. under `nohup`). Every `--flag` documented
+below still works exactly as before; the wizard is just another way to
+build the same command.
+
 ```bash
 python generate_and_concat.py input.example.txt --output-dir output --gap-ms 300
 ```
@@ -279,3 +286,27 @@ Cartesia's published Python SDK source/examples (import shape, `tts.generate_sse
 parameters, `voices.list()`), but not run against the live API, since that
 requires a Cartesia account/API key this dev environment doesn't have.
 Smoke-test a single clip before running `--all-voices`.
+
+## Project layout
+
+The implementation lives in the `tts_batch` package; `generate_and_concat.py`
+at the repo root is a thin entry point (`python generate_and_concat.py ...`
+still works exactly as before).
+
+- `tts_batch/input_parsing.py` — parses the `# name` / clip-lines input format.
+- `tts_batch/audio.py` — concatenation, the resumable per-voice generation
+  loop, and the voices-manifest writer, shared by every backend.
+- `tts_batch/backends/` — one file per TTS backend (`kyutai.py`,
+  `tortoise.py`, `breeze.py`, `cartesia.py`), each owning its own CLI flags,
+  argument validation, and generation logic. `base.py` documents the
+  interface a new backend needs to implement.
+- `tts_batch/cli.py` — assembles the argparse parser from the shared flags
+  plus each backend's own, and dispatches validation to the selected
+  backend.
+- `tts_batch/interactive.py` — the guided setup wizard (see "Run it" above).
+- `tts_batch/runner.py` — runs a fully-parsed/validated command.
+
+Adding a fifth backend means creating one new file in `tts_batch/backends/`
+implementing the shape documented in `base.py`, and adding it to the
+`BACKENDS` dict in `tts_batch/backends/__init__.py` — nothing else needs to
+change.

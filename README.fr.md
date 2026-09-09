@@ -48,6 +48,13 @@ non vides qui suivent sont synthétisées dans l'ordre puis concaténées dans
 
 ## 3. Lancer le script
 
+Lancez le script sans aucun argument (`python generate_and_concat.py`) pour
+une configuration guidée qui demande votre fichier d'entrée, le moteur et la
+voix, puis affiche la commande équivalente avant de l'exécuter — copiez-la
+pour scripter les lancements suivants (par exemple avec `nohup`). Toutes les
+options `--flag` ci-dessous fonctionnent toujours exactement comme avant ;
+l'assistant n'est qu'une autre façon de construire la même commande.
+
 ```bash
 python generate_and_concat.py input.example.txt --output-dir output --gap-ms 300
 ```
@@ -314,3 +321,30 @@ des imports, paramètres de `tts.generate_sse`, `voices.list()`), mais n'a
 pas été testé contre l'API réelle, faute d'un compte/clé API Cartesia dans
 cet environnement de développement. Testez un seul extrait avant de lancer
 `--all-voices`.
+
+## Structure du projet
+
+L'implémentation se trouve dans le paquet `tts_batch` ; `generate_and_concat.py`
+à la racine du dépôt est un point d'entrée minimal (`python
+generate_and_concat.py ...` fonctionne toujours exactement comme avant).
+
+- `tts_batch/input_parsing.py` — analyse le format d'entrée `# nom` / lignes
+  d'extraits.
+- `tts_batch/audio.py` — concaténation, boucle de génération par voix
+  reprenable, et écriture du manifeste des voix, partagées par tous les
+  moteurs.
+- `tts_batch/backends/` — un fichier par moteur TTS (`kyutai.py`,
+  `tortoise.py`, `breeze.py`, `cartesia.py`), chacun possédant ses propres
+  options CLI, sa validation d'arguments et sa logique de génération.
+  `base.py` documente l'interface qu'un nouveau moteur doit implémenter.
+- `tts_batch/cli.py` — assemble le parseur argparse à partir des options
+  communes et de celles de chaque moteur, et délègue la validation au
+  moteur sélectionné.
+- `tts_batch/interactive.py` — l'assistant de configuration guidée (voir
+  « Lancer le script » ci-dessus).
+- `tts_batch/runner.py` — exécute une commande entièrement analysée/validée.
+
+Ajouter un cinquième moteur consiste à créer un nouveau fichier dans
+`tts_batch/backends/` implémentant la forme documentée dans `base.py`, puis
+à l'ajouter au dictionnaire `BACKENDS` dans
+`tts_batch/backends/__init__.py` — rien d'autre n'a besoin de changer.
