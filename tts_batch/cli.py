@@ -35,7 +35,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--language",
         type=str,
-        choices=["en", "fr"],
+        choices=sorted(kyutai.DEFAULT_VOICE_BY_LANGUAGE),
         default="en",
         help=(
             "For --model kyutai: picks a default voice for this language (ignored "

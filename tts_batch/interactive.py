@@ -7,6 +7,7 @@ keep in sync, and invalid answers surface the same parser.error() messages
 a mistyped flag would.
 """
 
+import shlex
 from pathlib import Path
 
 from .backends import BACKENDS
@@ -50,7 +51,9 @@ def run_wizard(parser) -> list[str]:
     argv += ["--gap-ms", gap_ms]
 
     print("\nEquivalent command:")
-    print("  python generate_and_concat.py " + " ".join(argv))
+    print("  python generate_and_concat.py " + shlex.join(argv))
+    if any(flag in argv for flag in ("--all-voices", "--all-fr", "--all-eng")):
+        print("  (add --yes to skip the confirmation prompt for unattended/nohup runs)")
     print()
 
     return argv
