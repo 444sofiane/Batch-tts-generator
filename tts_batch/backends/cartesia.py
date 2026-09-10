@@ -42,7 +42,7 @@ def add_cli_arguments(parser) -> None:
 def validate_args(args, parser) -> None:
     if args.all_fr or args.all_eng:
         parser.error(
-            "--all-fr/--all-eng are --model kyutai only; use --all-voices for "
+            "--all-fr/--all-eng are --model kyutai/piper only; use --all-voices for "
             "--model cartesia (it loops over your Cartesia account's voice "
             "library instead of a language-split repo)."
         )

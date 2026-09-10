@@ -1,11 +1,13 @@
 # Générateur de TTS par lot
 
 Génère plusieurs extraits audio et les concatène par groupe en fichiers
-`.wav`. Quatre moteurs sont disponibles : le modèle TTS PyTorch de Kyutai
+`.wav`. Six moteurs sont disponibles : le modèle TTS PyTorch de Kyutai
 (`kyutai-labs/delayed-streams-modeling`, par défaut),
 [Tortoise-TTS](https://huggingface.co/spaces/Manmay/tortoise-tts) (via
 `--model tortoise`), [Breeze-TTS 2](https://huggingface.co/BreezeBlue/Breeze-TTS-2)
-(via `--model breeze`), et l'API cloud de
+(via `--model breeze`), [Piper](https://github.com/OHF-Voice/piper1-gpl) (via
+`--model piper`), [Coqui XTTS-v2](https://huggingface.co/coqui/XTTS-v2) (via
+`--model xtts`), et l'API cloud de
 [Cartesia](https://play.cartesia.ai/text-to-speech) (via `--model cartesia`).
 
 ## 1. Installer les dépendances
@@ -247,6 +249,136 @@ source publié de Breeze (`infer.py`) mais n'a pas été exécuté de bout en
 bout, car cela nécessite Linux + un GPU CUDA que cet environnement de
 développement n'a pas. Testez-le sur votre serveur avant de vous y fier.
 
+## Utiliser le moteur Piper
+
+Passez `--model piper` pour utiliser [Piper](https://github.com/OHF-Voice/piper1-gpl),
+un modèle local léger basé sur `onnxruntime` (pas `torch`) : pas de GPU
+nécessaire pour tourner bien plus vite que temps réel, ce qui en fait le
+moteur le plus adapté de ce script pour générer de très gros volumes sans
+carte graphique. En échange, la qualité audio est plus "robotique" que
+Kyutai/Tortoise/Breeze.
+
+- **De très nombreuses langues** — le catalogue de voix Piper couvre l'anglais,
+  le français et des dizaines d'autres langues, mais l'option `--language` de
+  ce script reste limitée à `en`/`fr` comme pour les autres moteurs (elle
+  choisit seulement une voix par défaut). Passez n'importe quel id de voix à
+  `--voice` pour utiliser une autre langue du catalogue.
+- **Les voix sont des ids Piper** (par ex. `en_US-lessac-medium`,
+  `fr_FR-siwis-medium`), au format `<langue>_<région>-<nom>-<qualité>` —
+  parcourez [rhasspy.github.io/piper-samples](https://rhasspy.github.io/piper-samples)
+  pour écouter et choisir. Les fichiers de voix (`.onnx`/`.onnx.json`) sont
+  téléchargés automatiquement depuis Hugging Face au premier lancement puis
+  mis en cache, comme pour Kyutai.
+- `--piper-length-scale` (par défaut `1.0`) ajuste la vitesse de parole :
+  supérieur à `1` ralentit, inférieur à `1` accélère.
+- `--all-voices` fonctionne comme pour Kyutai, mais parcourt tout le
+  catalogue Piper ; `--all-fr`/`--all-eng` filtrent le catalogue par langue
+  au lieu d'être rejetées.
+- `--device cuda` fonctionne aussi avec Piper (via `onnxruntime-gpu`, à
+  installer séparément), mais l'intérêt principal de ce moteur est justement
+  de tourner vite sur CPU seul.
+
+**Installation :** contrairement à Tortoise/Breeze, `piper-tts` est une
+dépendance légère (pas de gros stack ML) qui s'installe proprement dans le
+`.venv` principal, sans venv séparé :
+
+```bash
+uv pip install piper-tts
+```
+
+```bash
+python generate_and_concat.py input.example.txt --model piper --voice fr_FR-siwis-medium
+```
+
+**Réserve sur les tests :** ce moteur a été implémenté à partir de la
+documentation publiée de l'API Python de Piper (`PiperVoice.load`,
+`synthesize`, `SynthesisConfig`) et du format de `voices.json`, mais n'a pas
+été exécuté de bout en bout dans cet environnement de développement (pas
+d'installation testée de `piper-tts` ici). Testez un seul extrait avant de
+lancer `--all-voices`.
+
+## Utiliser le moteur XTTS-v2
+
+Passez `--model xtts` pour utiliser [Coqui XTTS-v2](https://huggingface.co/coqui/XTTS-v2),
+un modèle multilingue à poids ouverts, via le fork communautaire
+[idiap/coqui-ai-TTS](https://github.com/idiap/coqui-ai-TTS) qui maintient le
+package `coqui-tts` (l'ancien package `TTS` de Coqui AI est à l'arrêt depuis
+la fermeture de l'entreprise, mais ce fork le garde compatible avec les
+versions récentes de Python/torch) :
+
+- **17 langues** dont l'anglais et le français, mais comme pour les autres
+  moteurs, `--language` de ce script reste limité à `en`/`fr` — passé
+  directement à XTTS comme paramètre de langue.
+- **Deux façons de choisir une voix**, mutuellement exclusives :
+  - **Une voix intégrée** (~58 "studio speakers" fournis avec le modèle) :
+    `--voice "Claribel Dervla"` (nom exact requis — listez-les avec la
+    commande ci-dessous).
+  - **Un clonage à partir d'un extrait de référence** : `--xtts-speaker-wav
+    ref.wav` (quelques secondes de parole propre suffisent, pas besoin de
+    transcription contrairement à Breeze).
+- `--all-voices` parcourt les ~58 voix intégrées (pas de `--all-fr`/
+  `--all-eng`, qui sont rejetées avec `--model xtts` — utilisez `--voice-limit`
+  pour tester sur un sous-ensemble).
+- Lister les voix intégrées disponibles :
+  ```bash
+  .venv/bin/python -c "from TTS.api import TTS; print(TTS('tts_models/multilingual/multi-dataset/xtts_v2', progress_bar=False).speakers)"
+  ```
+- **Beaucoup plus lent que Piper sur CPU** — mesuré dans cet environnement de
+  développement (5 phrases courtes en français, CPU seulement, pas de GPU
+  disponible pour comparer) : environ **4,2s/extrait pour XTTS contre
+  0,18s/extrait pour Piper** (~23x plus lent), plus un chargement du modèle
+  d'environ 20s pour XTTS contre 3-4s pour Piper (payé une fois par
+  lancement, pas par extrait). Pour de la génération à grand volume sans
+  GPU, Piper reste largement plus adapté ; XTTS se justifie surtout pour sa
+  meilleure qualité/le clonage de voix, ou avec un GPU pour compenser sa
+  lenteur sur CPU.
+
+**Installation :** contrairement à Tortoise, `coqui-tts` n'a pas de pins de
+dépendances anciennes et s'installe proprement dans le `.venv` principal
+(Python 3.12), en réutilisant le `torch` déjà installé à l'étape 1 :
+
+```bash
+uv pip install coqui-tts
+```
+
+Avec torch >= 2.9 (la version installée par l'étape 1 au moment de la
+rédaction), `coqui-tts` a aussi besoin de l'extra `codec` pour la lecture/
+écriture audio (sinon `import TTS` échoue avec une erreur explicite qui vous
+redirige ici) :
+
+```bash
+uv pip install "coqui-tts[codec]"
+```
+
+**Licence et accord des CGU :** les poids XTTS-v2 sont sous la Coqui Public
+Model License (CPML) — usage gratuit pour du test/évaluation/recherche
+non-commerciale uniquement ; un usage commercial (y compris une génération
+à grande échelle destinée à un produit) nécessite une licence séparée
+(licensing@coqui.ai). Vérifiez les termes exacts sur
+[coqui.ai/cpml](https://coqui.ai/cpml) avant un usage commercial.
+
+Le premier chargement du modèle demande normalement une confirmation
+interactive `[y/n]` des CGU, ce qui planterait sous `nohup`. Ce script
+l'exige donc en amont via la variable d'environnement `COQUI_TOS_AGREED=1`
+(rejeté avec un message clair si absente) plutôt que de laisser le prompt
+interactif planter au milieu d'un batch :
+
+```bash
+export COQUI_TOS_AGREED=1
+python generate_and_concat.py input.example.txt --model xtts --voice "Claribel Dervla"
+```
+
+Ou, comme pour `CARTESIA_API_KEY`, ajoutez `COQUI_TOS_AGREED=1` à votre
+fichier `.env` pour ne pas avoir à la redéfinir à chaque session.
+
+**Testé de bout en bout :** ce moteur a été vérifié dans cet environnement de
+développement avec un téléchargement complet des poids (~2 Go) et une
+génération réelle (`--voice "Claribel Dervla" --language fr`), produisant un
+`.wav` 24 kHz valide. `--all-voices` (qui boucle sur le catalogue de voix
+intégrées) n'a en revanche été vérifié qu'au niveau du code, pas exécuté sur
+l'ensemble des ~58 voix — testez avec `--voice-limit` avant un lancement
+complet.
+
 ## Utiliser le moteur Cartesia
 
 Passez `--model cartesia` pour utiliser les modèles Sonic de
@@ -339,7 +471,7 @@ generate_and_concat.py ...` fonctionne toujours exactement comme avant).
   reprenable, et écriture du manifeste des voix, partagées par tous les
   moteurs.
 - `tts_batch/backends/` — un fichier par moteur TTS (`kyutai.py`,
-  `tortoise.py`, `breeze.py`, `cartesia.py`), chacun possédant ses propres
+  `tortoise.py`, `breeze.py`, `piper.py`, `xtts.py`, `cartesia.py`), chacun possédant ses propres
   options CLI, sa validation d'arguments et sa logique de génération.
   `base.py` documente l'interface qu'un nouveau moteur doit implémenter.
 - `tts_batch/cli.py` — assemble le parseur argparse à partir des options
@@ -349,7 +481,7 @@ generate_and_concat.py ...` fonctionne toujours exactement comme avant).
   « Lancer le script » ci-dessus).
 - `tts_batch/runner.py` — exécute une commande entièrement analysée/validée.
 
-Ajouter un cinquième moteur consiste à créer un nouveau fichier dans
+Ajouter un moteur supplémentaire consiste à créer un nouveau fichier dans
 `tts_batch/backends/` implémentant la forme documentée dans `base.py`, puis
 à l'ajouter au dictionnaire `BACKENDS` dans
 `tts_batch/backends/__init__.py` — rien d'autre n'a besoin de changer.

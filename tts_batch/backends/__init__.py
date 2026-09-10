@@ -6,11 +6,13 @@ choices are numbered in the interactive wizard's backend menu (see
 interactive.run_wizard).
 """
 
-from . import breeze, cartesia, kyutai, tortoise
+from . import breeze, cartesia, kyutai, piper, tortoise, xtts
 
 BACKENDS = {
     kyutai.NAME: kyutai,
     tortoise.NAME: tortoise,
     breeze.NAME: breeze,
     cartesia.NAME: cartesia,
+    piper.NAME: piper,
+    xtts.NAME: xtts,
 }

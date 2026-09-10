@@ -49,7 +49,7 @@ def add_cli_arguments(parser) -> None:
 def validate_args(args, parser) -> None:
     if args.all_fr or args.all_eng:
         parser.error(
-            "--all-fr/--all-eng are --model kyutai only (Tortoise voices aren't "
+            "--all-fr/--all-eng are --model kyutai/piper only (Tortoise voices aren't "
             "split by language); use --all-voices instead."
         )
     if args.language == "fr":

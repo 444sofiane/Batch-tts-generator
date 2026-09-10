@@ -38,10 +38,10 @@ def build_parser() -> argparse.ArgumentParser:
         choices=sorted(kyutai.DEFAULT_VOICE_BY_LANGUAGE),
         default="en",
         help=(
-            "For --model kyutai: picks a default voice for this language (ignored "
-            "if --voice is set). For --model cartesia: passed straight through as "
-            "the API's language parameter. Ignored by --model tortoise/breeze "
-            "(English-only; --language fr is rejected for those)."
+            "For --model kyutai/piper: picks a default voice for this language "
+            "(ignored if --voice is set). For --model cartesia/xtts: passed straight "
+            "through as the API's/model's language parameter. Ignored by --model "
+            "tortoise/breeze (English-only; --language fr is rejected for those)."
         ),
     )
     parser.add_argument(
@@ -55,14 +55,21 @@ def build_parser() -> argparse.ArgumentParser:
             "or a path to a .safetensors file already on disk. For --model tortoise: the "
             "name of a built-in preset voice (e.g. 'tom', 'angie'). For --model cartesia: "
             "a voice_id from your Cartesia voice library (copy one from "
-            "play.cartesia.ai). Required for tortoise/cartesia unless --all-voices is set."
+            "play.cartesia.ai). For --model piper: a Piper voice id (e.g. "
+            "'en_US-lessac-medium'), overrides --language same as kyutai. For --model "
+            "xtts: a built-in studio speaker name (e.g. 'Claribel Dervla'); mutually "
+            "exclusive with --xtts-speaker-wav. Required for tortoise/cartesia unless "
+            "--all-voices is set."
         ),
     )
     parser.add_argument(
         "--device",
         type=str,
         default="cpu",
-        help="torch device to run on (default: cpu; --model breeze always uses CUDA)",
+        help=(
+            "Device to run on (default: cpu; --model breeze always uses CUDA). "
+            "torch device for kyutai/tortoise/breeze/xtts, onnxruntime CPU-vs-CUDA for piper."
+        ),
     )
     parser.add_argument(
         "--gap-ms", type=float, default=300.0, help="Pause between clips within a group"
@@ -72,9 +79,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help=(
             "Generate every group for every voice, instead of just one: every voice "
-            "in the voice repo (901+ voices) for --model kyutai, every built-in "
-            "preset voice for --model tortoise, or every voice in your account's "
-            "library for --model cartesia. Ignores --voice/--language. Writes to "
+            "in the voice repo (901+ voices) for --model kyutai, every voice in the "
+            "Piper voice catalog for --model piper, every built-in preset voice for "
+            "--model tortoise, every built-in studio speaker (~58) for --model xtts, "
+            "or every voice in your account's library for --model cartesia. Ignores "
+            "--voice/--language. Writes to "
             "<output-dir>/<group><e if enhanced><voice index>.wav, with a "
             "voices_manifest.txt mapping each index back to its source voice. "
             "Resumable: rerunning the same command skips groups already written."
@@ -85,7 +94,8 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help=(
             f"Like --all-voices, but restricted to voices under '{kyutai.FR_VOICES_PREFIX}' "
-            "(the French voices) instead of the whole repo. --model kyutai only."
+            "(the French voices) instead of the whole repo, for --model kyutai; or to "
+            "French voices in the Piper catalog for --model piper."
         ),
     )
     parser.add_argument(
@@ -93,7 +103,8 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help=(
             f"Like --all-voices, but restricted to voices under '{kyutai.EN_VOICES_PREFIX}' "
-            "(the English Expresso voices) instead of the whole repo. --model kyutai only."
+            "(the English Expresso voices) instead of the whole repo, for --model kyutai; "
+            "or to English voices in the Piper catalog for --model piper."
         ),
     )
     parser.add_argument(
