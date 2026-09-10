@@ -29,7 +29,7 @@ et si oui de la version CUDA supportée par votre pilote) :
 
 - **CPU uniquement** (pas de GPU, ou GPU trop ancien pour CUDA) :
   ```bash
-  pip install torch --index-url https://download.pytorch.org/whl/cpu
+  uv pip install torch --index-url https://download.pytorch.org/whl/cpu
   ```
 - **GPU NVIDIA** : vérifiez la version CUDA maximale supportée par votre
   pilote avec `nvidia-smi`, puis choisissez une version de torch égale ou
@@ -37,7 +37,7 @@ et si oui de la version CUDA supportée par votre pilote) :
   échouera à l'initialisation. Par exemple, pour un pilote supportant
   jusqu'à CUDA 12.7 :
   ```bash
-  pip install torch --index-url https://download.pytorch.org/whl/cu126
+  uv pip install torch --index-url https://download.pytorch.org/whl/cu126
   ```
 
 ## 2. Rédiger votre fichier d'entrée
