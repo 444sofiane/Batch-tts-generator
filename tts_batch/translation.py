@@ -270,6 +270,13 @@ class Translator:
             encoding="utf-8",
         )
 
+    def is_cached(self, text: str, target_language: str) -> bool:
+        """True if translate(text, target_language) would return a cached
+        result without needing Argos/MyMemory at all."""
+        if target_language == self.source_language:
+            return True
+        return f"{self.source_language}\t{target_language}\t{text}" in self.cache
+
     def translate(self, text: str, target_language: str) -> str:
         if target_language == self.source_language:
             return text

@@ -109,6 +109,18 @@ def add_cli_arguments(parser) -> None:
         ),
     )
     parser.add_argument(
+        "--piper-translate-cached-only",
+        action="store_true",
+        help=(
+            "With --all-voices/--all-fr/--all-eng and --piper-translate: skip voices "
+            "whose language doesn't already have every line cached in "
+            "--piper-translation-cache, instead of attempting a live translation (which "
+            "may fail, e.g. on an exhausted MyMemory quota). Lets you generate what's "
+            "already translated now and pick up the rest later - re-run without this flag "
+            "once more translations are cached."
+        ),
+    )
+    parser.add_argument(
         "--piper-commercial-safe",
         action="store_true",
         help=(
@@ -125,6 +137,8 @@ def add_cli_arguments(parser) -> None:
 def validate_args(args, parser) -> None:
     if args.piper_translate_only and not args.piper_translate:
         parser.error("--piper-translate-only requires --piper-translate.")
+    if args.piper_translate_cached_only and not args.piper_translate:
+        parser.error("--piper-translate-cached-only requires --piper-translate.")
     if args.piper_commercial_safe and args.voice and not is_commercial_safe(args.voice):
         parser.error(
             f"--piper-commercial-safe is set but --voice {args.voice!r} isn't on the "
@@ -233,6 +247,15 @@ def prefill_translations(groups, target_languages: set[str], translator: Transla
         print(f"Pre-translated {len(pending)} (language, line) pairs; cache is warm.")
 
 
+def language_fully_cached(groups, translator: Translator, target_language: str) -> bool:
+    """True if every line across groups already has a cached translation for
+    this language - i.e. generating this voice needs no live Argos/MyMemory
+    call at all (see --piper-translate-cached-only)."""
+    return all(
+        translator.is_cached(text, target_language) for _, lines in groups for text in lines
+    )
+
+
 def translated_groups(args, groups, voice_key: str, catalog: dict, translator: Translator | None):
     if translator is None:
         return groups
@@ -300,9 +323,6 @@ def run_all_voices(args, groups) -> None:
             f"--piper-commercial-safe: {len(voice_keys)}/{total_for_scope} voices in scope "
             "are commercial-safe (see PIPER_VOICE_LICENSES.md); the rest are excluded."
         )
-    if args.voice_limit:
-        voice_keys = voice_keys[: args.voice_limit]
-
     translator = (
         Translator(
             args.piper_translation_source,
@@ -312,6 +332,19 @@ def run_all_voices(args, groups) -> None:
         if args.piper_translate
         else None
     )
+    if translator is not None and args.piper_translate_cached_only:
+        before = len(voice_keys)
+        voice_keys = [
+            vk for vk in voice_keys if language_fully_cached(groups, translator, voice_language(vk, catalog))
+        ]
+        print(
+            f"--piper-translate-cached-only: {len(voice_keys)}/{before} voices in scope "
+            "already have every line cached; the rest are skipped (not fully translated yet)."
+        )
+
+    if args.voice_limit:
+        voice_keys = voice_keys[: args.voice_limit]
+
     if translator is not None:
         target_languages = {voice_language(vk, catalog) for vk in voice_keys}
         prefill_translations(groups, target_languages, translator)

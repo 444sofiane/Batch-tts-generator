@@ -366,6 +366,14 @@ dépendance au quota MyMemory.
   MyMemory pour les langues non couvertes par Argos) de l'étape de
   génération (rapide, locale), et pour relancer juste les traductions
   manquantes sans reprendre tout le run.
+- **`--piper-translate-cached-only`** : avec `--all-voices`/`--all-fr`/
+  `--all-eng`, ne génère que les voix dont la langue a déjà **toutes** ses
+  phrases en cache — les autres sont ignorées plutôt que de tenter une
+  traduction en direct qui pourrait échouer (quota MyMemory épuisé, par
+  exemple). Pratique pour générer tout de suite ce qui est déjà traduit et
+  rattraper le reste plus tard (relancez sans ce flag une fois le cache plus
+  complet — voir `--piper-translate-only` ci-dessus pour le remplir sans
+  générer d'audio entretemps).
 - La traduction est mise en cache dans `output/piper_translations.json` (une
   entrée par triplet langue source/langue cible/phrase, quel que soit le
   moteur qui l'a produite) et chaque phrase n'est traduite qu'une fois par
