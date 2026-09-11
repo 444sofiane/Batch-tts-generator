@@ -13,6 +13,7 @@ Hugging Face repo, cached the same way Kyutai's voice files are.
 
 import functools
 import json
+import os
 from pathlib import Path
 
 import numpy as np
@@ -23,6 +24,12 @@ from .. import audio
 from ..translation import Translator
 
 NAME = "piper"
+
+# onnxruntime has no built-in env var for this (checked: its session-creation
+# code doesn't read one) - PiperVoice.load() always builds a bare
+# SessionOptions() with the library's own default intra-op thread count. Set
+# this to override it; leave it unset to keep that default untouched.
+INTRA_OP_THREADS_ENV_VAR = "PIPER_INTRA_OP_THREADS"
 DESCRIPTION = (
     "Piper TTS (English/French/many other languages, onnxruntime-based - fast on "
     "CPU with no GPU required, best fit for large-scale batches - requires the "
@@ -207,7 +214,28 @@ def load_voice(args, voice_key: str, catalog: dict):
     from piper import PiperVoice
 
     onnx_path, json_path = download_voice_files(voice_key, catalog)
-    return PiperVoice.load(onnx_path, config_path=json_path, use_cuda=args.device == "cuda")
+    tts_voice = PiperVoice.load(onnx_path, config_path=json_path, use_cuda=args.device == "cuda")
+
+    threads = os.environ.get(INTRA_OP_THREADS_ENV_VAR)
+    if threads:
+        # PiperVoice.load() has no parameter to pass this through, so rebuild
+        # just the onnxruntime session with it set, matching load()'s own
+        # provider selection (see piper/voice.py) - everything else about the
+        # loaded voice (config, espeak data dir, etc.) stays as load() set it.
+        import onnxruntime
+
+        sess_options = onnxruntime.SessionOptions()
+        sess_options.intra_op_num_threads = int(threads)
+        providers = (
+            [("CUDAExecutionProvider", {"cudnn_conv_algo_search": "HEURISTIC"})]
+            if args.device == "cuda"
+            else ["CPUExecutionProvider"]
+        )
+        tts_voice.session = onnxruntime.InferenceSession(
+            str(onnx_path), sess_options=sess_options, providers=providers
+        )
+
+    return tts_voice
 
 
 def voice_language(voice_key: str, catalog: dict) -> str:

@@ -288,6 +288,21 @@ Kyutai/Tortoise/Breeze.
 - `--device cuda` fonctionne aussi avec Piper (via `onnxruntime-gpu`, à
   installer séparément), mais l'intérêt principal de ce moteur est justement
   de tourner vite sur CPU seul.
+- **`PIPER_INTRA_OP_THREADS`** (variable d'environnement, pas une option
+  `--flag`) limite le nombre de threads CPU utilisés par `onnxruntime` pour
+  chaque session de voix — utile pour laisser des cœurs libres pour autre
+  chose pendant un gros run. `onnxruntime` n'a pas de variable d'environnement
+  intégrée pour ça (vérifié : son code de création de session n'en lit
+  aucune) ; celle-ci vient de ce script. Non définie, le comportement par
+  défaut d'`onnxruntime` (généralement proche du nombre de cœurs de la
+  machine) reste inchangé. Mesuré sur cette machine (32 cœurs, corpus de 59
+  phrases) : non définie, `onnxruntime` a utilisé en moyenne ~18 cœurs ; avec
+  `PIPER_INTRA_OP_THREADS=4`, ~3 cœurs — et le temps total est resté quasiment
+  identique dans les deux cas, ce run étant trop léger pour que le nombre de
+  threads change grand-chose en pratique.
+  ```bash
+  PIPER_INTRA_OP_THREADS=4 python generate_and_concat.py input.example.txt --model piper
+  ```
 
 ### Filtrer sur les voix utilisables commercialement
 
