@@ -6,7 +6,7 @@ better fit for large-scale batch generation on CPU than Kyutai/Tortoise/
 Breeze. The trade-off is quality - it sounds more "robotic" than the other
 engines, in exchange for speed and cost.
 
-Voices are identified by a Piper voice id (e.g. "en_US-lessac-medium" or
+Voices are identified by a Piper voice id (e.g. "en_US-arctic-medium" or
 "fr_FR-siwis-medium") and downloaded on demand from the rhasspy/piper-voices
 Hugging Face repo, cached the same way Kyutai's voice files are.
 """
@@ -20,6 +20,7 @@ import tqdm
 from huggingface_hub import hf_hub_download
 
 from .. import audio
+from ..translation import Translator
 
 NAME = "piper"
 DESCRIPTION = (
@@ -31,9 +32,20 @@ DESCRIPTION = (
 VOICE_REPO = "rhasspy/piper-voices"
 VOICE_CATALOG_FILE = "voices.json"
 
+# Bundled license audit (see ../../PIPER_VOICE_LICENSES.md for the full
+# report and methodology) - generated from each voice's MODEL_CARD, with a
+# handful cross-checked against the actual source license. Not legal advice;
+# --piper-commercial-safe uses this to filter, but verify before relying on
+# it for anything you intend to sell.
+VOICE_LICENSES_FILE = Path(__file__).parent / "piper_voice_licenses.json"
+
 DEFAULT_VOICE_BY_LANGUAGE = {
-    "en": "en_US-lessac-medium",
-    "fr": "fr_FR-siwis-medium",
+    # en_US-arctic-medium (CMU ARCTIC, BSD-style license) rather than the
+    # more commonly recommended en_US-lessac-medium: lessac is built on the
+    # Blizzard 2013 corpus, whose license explicitly prohibits commercial
+    # use - see PIPER_VOICE_LICENSES.md. arctic is verified commercial-safe.
+    "en": "en_US-arctic-medium",
+    "fr": "fr_FR-siwis-medium",  # CC-BY 4.0, commercial OK with attribution
 }
 
 FR_LANGUAGE_FAMILY = "fr"
@@ -58,10 +70,68 @@ def add_cli_arguments(parser) -> None:
             "greater than 1 speaks slower, less than 1 speaks faster."
         ),
     )
+    parser.add_argument(
+        "--piper-translate",
+        action="store_true",
+        help=(
+            "Translate input text from French to each Piper voice's language before "
+            "synthesis (requires deep-translator and internet access)."
+        ),
+    )
+    parser.add_argument(
+        "--piper-translation-cache",
+        type=Path,
+        default=Path("output/piper_translations.json"),
+        help="JSON cache for Piper translations (default: output/piper_translations.json).",
+    )
+    parser.add_argument(
+        "--piper-translation-source",
+        default="fr",
+        help="Language of the input corpus when --piper-translate is used (default: fr).",
+    )
+    parser.add_argument(
+        "--piper-translation-email",
+        default=None,
+        help=(
+            "Contact email passed to MyMemory (the translation API used by "
+            "--piper-translate) to raise its free daily quota from ~5000 to ~50000 "
+            "characters - see https://mymemory.translated.net."
+        ),
+    )
+    parser.add_argument(
+        "--piper-translate-only",
+        action="store_true",
+        help=(
+            "With --piper-translate: fill the translation cache for every voice's "
+            "language and exit, without loading Piper or generating any audio. Lets "
+            "you run the slow/flaky network step separately from generation, and "
+            "re-run it alone if some translations fail."
+        ),
+    )
+    parser.add_argument(
+        "--piper-commercial-safe",
+        action="store_true",
+        help=(
+            "Restrict --all-voices/--all-fr/--all-eng to voices whose license is known "
+            "to permit commercial use (CC0/public domain/CC-BY/CC-BY-SA/Apache, or "
+            "individually verified) per PIPER_VOICE_LICENSES.md - excludes non-commercial, "
+            "copyleft, and unverified voices. With a single --voice, rejects it upfront if "
+            "it isn't on that list, instead of generating with it. Not legal advice - "
+            "verify before relying on this for anything you intend to sell."
+        ),
+    )
 
 
 def validate_args(args, parser) -> None:
-    pass
+    if args.piper_translate_only and not args.piper_translate:
+        parser.error("--piper-translate-only requires --piper-translate.")
+    if args.piper_commercial_safe and args.voice and not is_commercial_safe(args.voice):
+        parser.error(
+            f"--piper-commercial-safe is set but --voice {args.voice!r} isn't on the "
+            "commercial-safe list (or isn't a recognized voice) - see "
+            "PIPER_VOICE_LICENSES.md, or drop --piper-commercial-safe if you've "
+            "verified its license yourself."
+        )
 
 
 def load_voice_catalog() -> dict:
@@ -74,13 +144,30 @@ def load_voice_catalog() -> dict:
     return json.loads(Path(catalog_path).read_text(encoding="utf-8"))
 
 
-def list_all_voices(language_family: str | None, catalog: dict) -> list[str]:
+@functools.lru_cache
+def load_voice_licenses() -> dict:
+    """The bundled voice-id -> {commercial_safe, license, note, category} audit."""
+    return json.loads(VOICE_LICENSES_FILE.read_text(encoding="utf-8"))
+
+
+def is_commercial_safe(voice_key: str) -> bool:
+    """False for voices known to be non-commercial/copyleft/unverified, and for any
+    voice added upstream since the audit was last generated (fail conservative)."""
+    entry = load_voice_licenses().get(voice_key)
+    return bool(entry and entry["commercial_safe"])
+
+
+def list_all_voices(
+    language_family: str | None, catalog: dict, commercial_safe_only: bool = False
+) -> list[str]:
     """Every voice id in the catalog, optionally restricted to one language family
-    (e.g. 'fr' for every fr_FR/fr_BE/... voice)."""
+    (e.g. 'fr' for every fr_FR/fr_BE/... voice) and/or to commercial-safe voices
+    (see is_commercial_safe/PIPER_VOICE_LICENSES.md)."""
     return sorted(
         key
         for key, entry in catalog.items()
-        if language_family is None or entry["language"]["family"] == language_family
+        if (language_family is None or entry["language"]["family"] == language_family)
+        and (not commercial_safe_only or is_commercial_safe(key))
     )
 
 
@@ -92,7 +179,7 @@ def download_voice_files(voice_key: str, catalog: dict) -> tuple[Path, Path]:
         raise ValueError(
             f"Unknown Piper voice {voice_key!r}. Browse "
             "https://rhasspy.github.io/piper-samples for available voice ids "
-            "(e.g. 'en_US-lessac-medium', 'fr_FR-siwis-medium')."
+            "(e.g. 'en_US-arctic-medium', 'fr_FR-siwis-medium')."
         )
     repo_paths = list(entry["files"])
     onnx_repo_path = next(p for p in repo_paths if p.endswith(".onnx"))
@@ -109,6 +196,57 @@ def load_voice(args, voice_key: str, catalog: dict):
     return PiperVoice.load(onnx_path, config_path=json_path, use_cuda=args.device == "cuda")
 
 
+def voice_language(voice_key: str, catalog: dict) -> str:
+    return catalog[voice_key]["language"]["family"]
+
+
+def prefill_translations(groups, target_languages: set[str], translator: Translator) -> None:
+    """Translate every line into every target language up front and let each
+    result land in the cache as it succeeds (Translator.translate saves after
+    every new entry - see translation.py).
+
+    Run before the --all-voices generation loop so a transient translation
+    failure is reported here, once, instead of silently costing an entire
+    voice's worth of clips mid-run (see run_all_voices: a voice whose
+    translated_groups() call raises is skipped outright).
+    """
+    texts = [text for _, lines in groups for text in lines]
+    pending = [(language, text) for language in sorted(target_languages) for text in texts]
+
+    failures = []
+    for language, text in tqdm.tqdm(pending, desc="pre-translating"):
+        try:
+            translator.translate(text, language)
+        except Exception as e:
+            failures.append((language, text, e))
+
+    if failures:
+        print(f"{len(failures)}/{len(pending)} translations failed and were left out of the cache:")
+        for language, text, e in failures:
+            print(f"  [{language}] {text!r}: {e!r}")
+        print(
+            "Re-run with --piper-translate (--piper-translate-only to skip "
+            "generation) to retry just the missing ones - already-cached "
+            "translations are reused, not redone."
+        )
+    else:
+        print(f"Pre-translated {len(pending)} (language, line) pairs; cache is warm.")
+
+
+def translated_groups(args, groups, voice_key: str, catalog: dict, translator: Translator | None):
+    if translator is None:
+        return groups
+
+    target_language = voice_language(voice_key, catalog)
+    return [
+        (
+            group_name,
+            [translator.translate(text, target_language) for text in lines],
+        )
+        for group_name, lines in groups
+    ]
+
+
 def synthesize_clip(tts_voice, syn_config, text: str) -> np.ndarray:
     """Run one line of text through the loaded voice and return float32 PCM."""
     chunks = [chunk.audio_float_array for chunk in tts_voice.synthesize(text, syn_config=syn_config)]
@@ -120,9 +258,23 @@ def synthesize_clip(tts_voice, syn_config, text: str) -> np.ndarray:
 def run_single_voice(args, groups) -> None:
     from piper import SynthesisConfig
 
-    print("Loading model...")
     catalog = load_voice_catalog()
     voice_key = args.voice or DEFAULT_VOICE_BY_LANGUAGE[args.language]
+    translator = (
+        Translator(
+            args.piper_translation_source,
+            args.piper_translation_cache,
+            contact_email=args.piper_translation_email,
+        )
+        if args.piper_translate
+        else None
+    )
+    if translator is not None:
+        prefill_translations(groups, {voice_language(voice_key, catalog)}, translator)
+        if args.piper_translate_only:
+            return
+    groups = translated_groups(args, groups, voice_key, catalog, translator)
+    print("Loading model...")
     tts_voice = load_voice(args, voice_key, catalog)
     syn_config = SynthesisConfig(length_scale=args.piper_length_scale)
     synthesize_fn = functools.partial(synthesize_clip, tts_voice, syn_config)
@@ -141,9 +293,30 @@ def run_all_voices(args, groups) -> None:
         language_family = EN_LANGUAGE_FAMILY
     else:
         language_family = None
-    voice_keys = list_all_voices(language_family, catalog)
+    voice_keys = list_all_voices(language_family, catalog, args.piper_commercial_safe)
+    if args.piper_commercial_safe:
+        total_for_scope = len(list_all_voices(language_family, catalog))
+        print(
+            f"--piper-commercial-safe: {len(voice_keys)}/{total_for_scope} voices in scope "
+            "are commercial-safe (see PIPER_VOICE_LICENSES.md); the rest are excluded."
+        )
     if args.voice_limit:
         voice_keys = voice_keys[: args.voice_limit]
+
+    translator = (
+        Translator(
+            args.piper_translation_source,
+            args.piper_translation_cache,
+            contact_email=args.piper_translation_email,
+        )
+        if args.piper_translate
+        else None
+    )
+    if translator is not None:
+        target_languages = {voice_language(vk, catalog) for vk in voice_keys}
+        prefill_translations(groups, target_languages, translator)
+        if args.piper_translate_only:
+            return
 
     seconds_per_clip = (
         ROUGH_SECONDS_PER_CLIP_CPU if args.device == "cpu" else ROUGH_SECONDS_PER_CLIP_GPU
@@ -166,10 +339,11 @@ def run_all_voices(args, groups) -> None:
         try:
             tts_voice = load_voice(args, voice_key, catalog)
             synthesize_fn = functools.partial(synthesize_clip, tts_voice, syn_config)
+            voice_groups = translated_groups(args, groups, voice_key, catalog, translator)
             audio.generate_groups_for_voice(
                 synthesize_fn,
                 tts_voice.config.sample_rate,
-                groups,
+                voice_groups,
                 args.output_dir,
                 args.gap_ms,
                 filename_suffix=str(index),
@@ -200,10 +374,16 @@ def interactive_args(common: dict) -> list[str]:
         argv += ["--language", language]
         voice = input(
             "Piper voice id (leave blank for the default voice for the language, "
-            "e.g. 'en_US-lessac-medium' - browse https://rhasspy.github.io/piper-samples): "
+            "e.g. 'en_US-arctic-medium' - browse https://rhasspy.github.io/piper-samples): "
         ).strip()
         if voice:
             argv += ["--voice", voice]
+
+    if mode in ("2", "3", "4") and input(
+        "Restrict to voices with a known commercial-use-OK license? [y/N] "
+        "(see PIPER_VOICE_LICENSES.md): "
+    ).strip().lower() == "y":
+        argv.append("--piper-commercial-safe")
 
     device = input("Device, cpu or cuda [cpu]: ").strip() or "cpu"
     argv += ["--device", device]

@@ -1,0 +1,1 @@
+python generate_and_concat.py input.example.txt --model piper --all-voices --piper-commercial-safe --piper-translate --piper-translate-only --yes

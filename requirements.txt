@@ -2,3 +2,4 @@ moshi==0.2.11
 sphn
 numpy
 tqdm
+deep-translator

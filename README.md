@@ -73,7 +73,9 @@ GPU compatible (voir ci-dessus) est bien plus rapide via `--device cuda`.
   (`kyutai/tts-1.6b-en_fr`) est un modèle bilingue unique qui gère la
   langue du texte fourni en entrée — cette option choisit seulement une
   voix par défaut adaptée (voix anglaise ou française), elle ne change
-  pas de modèle.
+  pas de modèle. Les deux voix par défaut (`unmute-prod-website/default_voice.wav`
+  pour l'anglais, `cml-tts/fr/10087_11650_000028-0002.wav` pour le français)
+  sont commerciale-safe — voir [KYUTAI_VOICE_LICENSES.md](KYUTAI_VOICE_LICENSES.md).
 - `--voice` — voix à utiliser (voir `kyutai/tts-voices` sur Hugging Face
   pour les options disponibles), chemin relatif dans ce dépôt. Prend le
   dessus sur `--language`.
@@ -90,8 +92,16 @@ d'une seule :
 
 - `--all-voices` — toutes les voix de `kyutai/tts-voices` (901+ fichiers).
 - `--all-fr` — uniquement les voix françaises (`cml-tts/fr/`, ~70 fichiers).
-- `--all-eng` — uniquement les voix anglaises Expresso (`expresso/`, ~103
-  fichiers).
+- `--all-eng` — uniquement les voix anglaises (`expresso/`, `vctk/` et
+  `ears/`, ~362 fichiers).
+- `--kyutai-commercial-safe` — combinable avec les trois options
+  ci-dessus, ne garde que les voix dont la licence autorise explicitement
+  un usage commercial (CC0/CC-BY par jeu de données) — voir
+  [KYUTAI_VOICE_LICENSES.md](KYUTAI_VOICE_LICENSES.md) (**pas un avis
+  juridique**, à vérifier vous-même). Exclut notamment `expresso/` et
+  `ears/`, qui sont sous licence CC BY-NC (non-commerciale). Avec une
+  seule `--voice`, rejette la commande en amont si la voix n'est pas sur
+  cette liste.
 
 Ces options ignorent `--voice`/`--language`. La sortie est plate, pas
 organisée par dossier de voix : `<output-dir>/<groupe><e si la voix est une
@@ -263,7 +273,7 @@ Kyutai/Tortoise/Breeze.
   ce script reste limitée à `en`/`fr` comme pour les autres moteurs (elle
   choisit seulement une voix par défaut). Passez n'importe quel id de voix à
   `--voice` pour utiliser une autre langue du catalogue.
-- **Les voix sont des ids Piper** (par ex. `en_US-lessac-medium`,
+- **Les voix sont des ids Piper** (par ex. `en_US-arctic-medium`,
   `fr_FR-siwis-medium`), au format `<langue>_<région>-<nom>-<qualité>` —
   parcourez [rhasspy.github.io/piper-samples](https://rhasspy.github.io/piper-samples)
   pour écouter et choisir. Les fichiers de voix (`.onnx`/`.onnx.json`) sont
@@ -277,6 +287,98 @@ Kyutai/Tortoise/Breeze.
 - `--device cuda` fonctionne aussi avec Piper (via `onnxruntime-gpu`, à
   installer séparément), mais l'intérêt principal de ce moteur est justement
   de tourner vite sur CPU seul.
+
+### Filtrer sur les voix utilisables commercialement
+
+Les voix du catalogue Piper viennent de jeux de données aux licences très
+variées (certaines interdisent explicitement l'usage commercial, d'autres
+sont sous copyleft GPL/AGPL, d'autres encore n'ont pas de licence claire).
+[PIPER_VOICE_LICENSES.md](PIPER_VOICE_LICENSES.md) documente ce qui a été
+vérifié pour les 176 voix du catalogue actuel — **ce n'est pas un avis
+juridique**, vérifiez vous-même avant de vous y fier pour un usage commercial
+réel.
+
+Passez `--piper-commercial-safe` pour que `--all-voices`/`--all-fr`/
+`--all-eng` ne génèrent que les voix dont la licence permet explicitement un
+usage commercial (CC0/domaine public/CC-BY/CC-BY-SA/Apache, ou vérifiées
+individuellement) — les voix non-commerciales, sous copyleft, ou à la
+licence incertaine sont exclues. Avec une seule `--voice`, cette option
+rejette la commande en amont si la voix choisie n'est pas sur cette liste,
+plutôt que de générer quand même :
+
+```bash
+python generate_and_concat.py input.example.txt --model piper \
+  --all-fr --piper-commercial-safe --yes
+```
+
+Les voix par défaut du script (`en_US-arctic-medium`, `fr_FR-siwis-medium`)
+sont déjà sur la liste commerciale-safe, donc un lancement sans `--voice` ni
+`--all-voices` est déjà sûr de ce point de vue, avec ou sans ce flag.
+
+### Traduire le corpus pour chaque langue Piper
+
+Les voix Piper sont généralement monolingues. Pour éviter de faire lire du
+français par une voix anglaise ou japonaise, activez la traduction avant la
+synthèse :
+
+```bash
+uv pip install argostranslate deep-translator
+python generate_and_concat.py input.example.txt --model piper \
+  --all-voices --piper-translate --yes
+```
+
+`--piper-translate` essaie deux moteurs, dans cet ordre :
+
+1. **[Argos Translate](https://github.com/argosopentech/argos-translate)**
+   — une bibliothèque de traduction neuronale **entièrement hors-ligne**
+   (CTranslate2), sans clé d'API, sans quota. Chaque paire de langues est un
+   modèle téléchargé une seule fois (~60-70 Mo, mis en cache
+   sous `~/.local/share/argos-translate`, en passant par l'anglais comme
+   langue pivot si besoin : `fr` → `en` → `ar`). Couvre 39 des 52 familles de
+   langues du catalogue Piper. Entièrement optionnel : si le paquet n'est pas
+   installé, ce moteur est simplement ignoré.
+2. **MyMemory**, via `deep-translator` — une vraie API cloud, utilisée
+   uniquement en repli pour les langues qu'Argos ne couvre pas (environ 13,
+   par ex. gallois, géorgien, télougou). Pas Google Translate :
+   `GoogleTranslator` s'appuie sur du scraping d'une page HTML dont Google a
+   changé la structure, ce qui le casse entièrement — toute traduction
+   échoue avec `TranslationNotFound()`, quelle que soit la langue, comme
+   vérifié dans cet environnement de développement. Les codes de langue
+   bruts utilisés par ce script (`fr`, `en`, `ar`...) sont résolus
+   automatiquement vers le format attendu par MyMemory (`fr-FR`, `en-GB`,
+   `ar-EG`...).
+
+Installer seulement l'un des deux fonctionne aussi (l'autre est simplement
+ignoré) ; installer les deux donne la meilleure couverture avec le moins de
+dépendance au quota MyMemory.
+
+- **Quota gratuit MyMemory : ~5000 caractères/jour** (anonyme), extensible à
+  ~50000/jour en fournissant un email de contact via
+  `--piper-translation-email vous@exemple.com` — voir
+  [mymemory.translated.net](https://mymemory.translated.net). Sans Argos
+  installé, un run `--all-voices` (176 voix / 52 langues sur le catalogue
+  Piper actuel) peut dépasser ce quota en un lancement ; avec Argos, seule
+  la petite poignée de langues non couvertes par Argos y contribue.
+- **`--piper-translate-only`** : ne fait que remplir le cache de traduction
+  pour la/les langue(s) nécessaire(s) (téléchargeant au passage les modèles
+  Argos manquants), sans charger Piper ni générer le moindre audio. Utile
+  pour séparer l'étape réseau/téléchargement (plus lente, sujette au quota
+  MyMemory pour les langues non couvertes par Argos) de l'étape de
+  génération (rapide, locale), et pour relancer juste les traductions
+  manquantes sans reprendre tout le run.
+- La traduction est mise en cache dans `output/piper_translations.json` (une
+  entrée par triplet langue source/langue cible/phrase, quel que soit le
+  moteur qui l'a produite) et chaque phrase n'est traduite qu'une fois par
+  langue, y compris entre plusieurs lancements interrompus. Avant de lancer
+  la génération, `--all-voices`/`--all-fr`/`--all-eng` pré-remplissent
+  automatiquement le cache pour toutes les langues nécessaires (une seule
+  fois par langue, pas par voix) ; les échecs sont listés avec le texte
+  concerné plutôt que de faire sauter silencieusement toute une voix
+  pendant la génération.
+- Le français est la langue source par défaut ; utilisez
+  `--piper-translation-source en` pour un corpus anglais. Testez quelques
+  voix avec `--voice-limit N` avant un lancement complet : la couverture et
+  la qualité de traduction dépendent des services utilisés.
 
 **Installation :** contrairement à Tortoise/Breeze, `piper-tts` est une
 dépendance légère (pas de gros stack ML) qui s'installe proprement dans le
@@ -474,6 +576,10 @@ generate_and_concat.py ...` fonctionne toujours exactement comme avant).
   `tortoise.py`, `breeze.py`, `piper.py`, `xtts.py`, `cartesia.py`), chacun possédant ses propres
   options CLI, sa validation d'arguments et sa logique de génération.
   `base.py` documente l'interface qu'un nouveau moteur doit implémenter.
+  `piper_voice_licenses.json` est l'audit de licences par voix consommé par
+  `--piper-commercial-safe` (voir [PIPER_VOICE_LICENSES.md](PIPER_VOICE_LICENSES.md)
+  pour le rapport complet et la méthodologie ; le JSON en est dérivé et
+  n'a pas vocation à être modifié à la main).
 - `tts_batch/cli.py` — assemble le parseur argparse à partir des options
   communes et de celles de chaque moteur, et délègue la validation au
   moteur sélectionné.

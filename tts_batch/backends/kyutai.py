@@ -24,12 +24,62 @@ DESCRIPTION = "Kyutai's PyTorch TTS model (bilingual EN/FR, runs locally on CPU 
 # differs per language is the voice recording, so --language only picks a
 # default voice - pass --voice directly to use any other one.
 DEFAULT_VOICE_BY_LANGUAGE = {
-    "en": "expresso/ex03-ex01_happy_001_channel1_334s.wav",
-    "fr": "cml-tts/fr/10087_11650_000028-0002.wav",
+    # unmute-prod-website/default_voice.wav (Kyutai's own recording, CC0)
+    # rather than the more commonly seen expresso/ voice: expresso is
+    # licensed CC BY-NC 4.0, non-commercial only - see KYUTAI_VOICE_LICENSES.md.
+    "en": "unmute-prod-website/default_voice.wav",
+    "fr": "cml-tts/fr/10087_11650_000028-0002.wav",  # CC BY 4.0, commercial OK with attribution
 }
 
 FR_VOICES_PREFIX = "cml-tts/fr/"
-EN_VOICES_PREFIX = "expresso/"
+# A tuple, not just "expresso/": vctk/ and ears/ are English too (confirmed
+# against their own dataset pages), and str.startswith() accepts a tuple of
+# prefixes natively. Without this, --all-eng --kyutai-commercial-safe would
+# always yield zero voices, since expresso/ alone is entirely non-commercial.
+EN_VOICES_PREFIX = ("expresso/", "vctk/", "ears/")
+
+# Commercial-use classification per voice-repo path prefix, derived from
+# kyutai/tts-voices' own README.md (see ../../KYUTAI_VOICE_LICENSES.md for
+# the full audit, sources, and methodology). Checked in order - list exact
+# single-file entries before the prefix rule for their containing folder.
+# True/False = verified safe/unsafe; None = unclear, treated as unsafe by
+# is_commercial_safe() (fail conservative). Matches both a bare voice path
+# (e.g. "cml-tts/fr/....wav") and its full .safetensors form via prefix, and
+# works for any --voice value someone passes since both are checked the
+# same way.
+VOICE_LICENSE_RULES: list[tuple[str, bool | None, str]] = [
+    ("unmute-prod-website/degaulle-2.wav", None,
+     "Unclear - probably public domain (1940 historical recording; Kyutai's own README "
+     "hedges on the exact license)."),
+    ("unmute-prod-website/freesound/", None,
+     "Unclear - sourced from freesound.org, whose per-upload license isn't verified here "
+     "despite the repo README's blanket CC0 claim."),
+    ("unmute-prod-website/ex04_narration_longform_00001.wav", False,
+     "CC BY-NC 4.0 (Expresso-derived) - non-commercial only."),
+    ("unmute-prod-website/p329_022.wav", True, "CC BY 4.0 (VCTK-derived)."),
+    ("unmute-prod-website/", True, "CC0 (Kyutai's own recording)."),
+    ("voice-donations/", True, "CC0 (Unmute Voice Donation Project)."),
+    ("vctk/", True, "CC BY 4.0 (Voice Cloning Toolkit dataset)."),
+    ("cml-tts/fr/", True, "CC BY 4.0 (CML-TTS Dataset)."),
+    ("alba-mackenna/", True, "CC BY 4.0."),
+    ("expresso/", False, "CC BY-NC 4.0 (Expresso dataset) - non-commercial only."),
+    ("ears/", False, "CC BY-NC 4.0 (EARS dataset) - non-commercial only."),
+]
+
+
+def voice_commercial_status(voice_key: str) -> tuple[bool | None, str]:
+    """(is_commercial_safe, note) for a voice's repo-relative path, per
+    VOICE_LICENSE_RULES. None means unclear/unrecognized."""
+    for prefix, safe, note in VOICE_LICENSE_RULES:
+        if voice_key.startswith(prefix):
+            return safe, note
+    return None, "Not in the license audit (unrecognized voice) - see KYUTAI_VOICE_LICENSES.md."
+
+
+def is_commercial_safe(voice_key: str) -> bool:
+    safe, _ = voice_commercial_status(voice_key)
+    return bool(safe)
+
 
 # Rough per-clip generation time used only to warn before a long
 # --all-voices run; actual time varies a lot with sentence length and the
@@ -45,10 +95,28 @@ def add_cli_arguments(parser) -> None:
         default=DEFAULT_DSM_TTS_REPO,
         help="HF repo for the TTS model (--model kyutai only)",
     )
+    parser.add_argument(
+        "--kyutai-commercial-safe",
+        action="store_true",
+        help=(
+            "Restrict --all-voices/--all-fr/--all-eng to voices whose license is known "
+            "to permit commercial use (CC0/CC-BY per dataset) per "
+            "KYUTAI_VOICE_LICENSES.md - excludes the non-commercial expresso/ and ears/ "
+            "datasets and a few unverified voices. With a single --voice, rejects it "
+            "upfront if it isn't commercial-safe, instead of generating with it. Not "
+            "legal advice - verify before relying on this for anything you intend to sell."
+        ),
+    )
 
 
 def validate_args(args, parser) -> None:
-    pass
+    if args.kyutai_commercial_safe and args.voice and not is_commercial_safe(args.voice):
+        parser.error(
+            f"--kyutai-commercial-safe is set but --voice {args.voice!r} isn't on the "
+            "commercial-safe list (or isn't a recognized voice) - see "
+            "KYUTAI_VOICE_LICENSES.md, or drop --kyutai-commercial-safe if you've "
+            "verified its license yourself."
+        )
 
 
 def load_model(args) -> TTSModel:
@@ -70,16 +138,22 @@ def synthesize_clip(tts_model: TTSModel, condition_attributes, text: str) -> np.
         return np.concatenate(pcms, axis=-1).astype(np.float32)
 
 
-def list_all_voices(voice_repo: str, prefix: str | None = None) -> list[str]:
+def list_all_voices(
+    voice_repo: str, prefix: str | None = None, commercial_safe_only: bool = False
+) -> list[str]:
     """Every voice embedding file in the voice repo, as full repo-relative paths.
 
     If `prefix` is given, only files under that path prefix are returned
-    (e.g. "cml-tts/fr/" for just the French voices).
+    (e.g. "cml-tts/fr/" for just the French voices). If `commercial_safe_only`
+    is set, voices not verified commercial-safe are excluded (see
+    is_commercial_safe/KYUTAI_VOICE_LICENSES.md).
     """
     files = list_repo_files(voice_repo)
     voices = (f for f in files if f.endswith(".safetensors"))
     if prefix is not None:
         voices = (f for f in voices if f.startswith(prefix))
+    if commercial_safe_only:
+        voices = (f for f in voices if is_commercial_safe(f))
     return sorted(voices)
 
 
@@ -103,7 +177,15 @@ def run_all_voices(args, groups) -> None:
         voice_prefix = EN_VOICES_PREFIX
     else:
         voice_prefix = None
-    voice_files = list_all_voices(tts_model.voice_repo, prefix=voice_prefix)
+    voice_files = list_all_voices(
+        tts_model.voice_repo, prefix=voice_prefix, commercial_safe_only=args.kyutai_commercial_safe
+    )
+    if args.kyutai_commercial_safe:
+        total_for_scope = len(list_all_voices(tts_model.voice_repo, prefix=voice_prefix))
+        print(
+            f"--kyutai-commercial-safe: {len(voice_files)}/{total_for_scope} voices in scope "
+            "are commercial-safe (see KYUTAI_VOICE_LICENSES.md); the rest are excluded."
+        )
     if args.voice_limit:
         voice_files = voice_files[: args.voice_limit]
 
@@ -176,6 +258,12 @@ def interactive_args(common: dict) -> list[str]:
         ).strip()
         if voice:
             argv += ["--voice", voice]
+
+    if mode in ("2", "3", "4") and input(
+        "Restrict to voices with a known commercial-use-OK license? [y/N] "
+        "(see KYUTAI_VOICE_LICENSES.md): "
+    ).strip().lower() == "y":
+        argv.append("--kyutai-commercial-safe")
 
     device = input("Device, cpu or cuda [cpu]: ").strip() or "cpu"
     argv += ["--device", device]

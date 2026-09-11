@@ -56,7 +56,7 @@ def build_parser() -> argparse.ArgumentParser:
             "name of a built-in preset voice (e.g. 'tom', 'angie'). For --model cartesia: "
             "a voice_id from your Cartesia voice library (copy one from "
             "play.cartesia.ai). For --model piper: a Piper voice id (e.g. "
-            "'en_US-lessac-medium'), overrides --language same as kyutai. For --model "
+            "'en_US-arctic-medium'), overrides --language same as kyutai. For --model "
             "xtts: a built-in studio speaker name (e.g. 'Claribel Dervla'); mutually "
             "exclusive with --xtts-speaker-wav. Required for tortoise/cartesia unless "
             "--all-voices is set."
@@ -102,8 +102,9 @@ def build_parser() -> argparse.ArgumentParser:
         "--all-eng",
         action="store_true",
         help=(
-            f"Like --all-voices, but restricted to voices under '{kyutai.EN_VOICES_PREFIX}' "
-            "(the English Expresso voices) instead of the whole repo, for --model kyutai; "
+            f"Like --all-voices, but restricted to voices under "
+            f"{', '.join(repr(p) for p in kyutai.EN_VOICES_PREFIX)} (the English "
+            "Expresso/VCTK/EARS voices) instead of the whole repo, for --model kyutai; "
             "or to English voices in the Piper catalog for --model piper."
         ),
     )

@@ -1,0 +1,1058 @@
+{
+  "ar_JO-kareem-low": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "See URL",
+    "note": "https://github.com/AliMokhammad/arabicttstrain/"
+  },
+  "ar_JO-kareem-medium": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "See URL",
+    "note": "https://github.com/AliMokhammad/arabicttstrain/"
+  },
+  "bg_BG-dimitar-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "bn_BD-google-medium": {
+    "category": "CC-BY-SA - commercial OK, attribution + share-alike on redistributed data",
+    "commercial_safe": true,
+    "license": "Attribution-ShareAlike 4.0 International",
+    "note": ""
+  },
+  "ca_ES-upc_ona-medium": {
+    "category": "CC-BY-SA - commercial OK, attribution + share-alike on redistributed data",
+    "commercial_safe": true,
+    "license": "CC BY-SA 3.0 ES",
+    "note": ""
+  },
+  "ca_ES-upc_ona-x_low": {
+    "category": "CC-BY-SA - commercial OK, attribution + share-alike on redistributed data",
+    "commercial_safe": true,
+    "license": "CC BY-SA 3.0 ES",
+    "note": ""
+  },
+  "ca_ES-upc_pau-x_low": {
+    "category": "CC-BY-SA - commercial OK, attribution + share-alike on redistributed data",
+    "commercial_safe": true,
+    "license": "CC BY-SA 3.0 ES",
+    "note": ""
+  },
+  "cs_CZ-jirka-low": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "cs_CZ-jirka-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "cs_CZ-kasandra-medium": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+    "note": ""
+  },
+  "cy_GB-bu_tts-medium": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "CC-BY",
+    "note": ""
+  },
+  "cy_GB-gwryw_gogleddol-medium": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "See URL",
+    "note": "https://git.techiaith.bangor.ac.uk/data-porth-technolegau-iaith/corpws-talentau-llais"
+  },
+  "da_DK-talesyntese-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "de_DE-eva_k-x_low": {
+    "category": "Verified commercial-OK (checked beyond the MODEL_CARD)",
+    "commercial_safe": true,
+    "license": "See URL",
+    "note": "M-AILABS dataset: BSD 3-Clause, commercial use permitted (verified)"
+  },
+  "de_DE-karlsson-low": {
+    "category": "Verified commercial-OK (checked beyond the MODEL_CARD)",
+    "commercial_safe": true,
+    "license": "See URL",
+    "note": "M-AILABS dataset: BSD 3-Clause, commercial use permitted (verified)"
+  },
+  "de_DE-kerstin-low": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "de_DE-mls-medium": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "CC-BY 4.0",
+    "note": ""
+  },
+  "de_DE-pavoque-low": {
+    "category": "NON-commercial only - do not use commercially",
+    "commercial_safe": false,
+    "license": "http://creativecommons.org/licenses/by-nc-sa/4.0/",
+    "note": ""
+  },
+  "de_DE-ramona-low": {
+    "category": "Verified commercial-OK (checked beyond the MODEL_CARD)",
+    "commercial_safe": true,
+    "license": "See URL",
+    "note": "M-AILABS dataset: BSD 3-Clause, commercial use permitted (verified)"
+  },
+  "de_DE-thorsten-high": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "de_DE-thorsten-low": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "de_DE-thorsten-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "de_DE-thorsten_emotional-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "el_GR-joy-medium": {
+    "category": "NON-commercial only - do not use commercially",
+    "commercial_safe": false,
+    "license": "CC BY-NC 4.0",
+    "note": ""
+  },
+  "el_GR-rapunzelina-low": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "el_GR-rapunzelina-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "en_GB-alan-low": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "See URL",
+    "note": "https://github.com/MycroftAI/mimic3-voices/blob/master/voices/en_UK/apope_low"
+  },
+  "en_GB-alan-medium": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "See URL",
+    "note": "https://github.com/MycroftAI/mimic3-voices/blob/master/voices/en_UK/apope_low"
+  },
+  "en_GB-alba-medium": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "https://creativecommons.org/licenses/by/4.0/",
+    "note": ""
+  },
+  "en_GB-aru-medium": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "https://creativecommons.org/licenses/by/4.0/",
+    "note": ""
+  },
+  "en_GB-cori-high": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "public domain",
+    "note": ""
+  },
+  "en_GB-cori-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "public domain",
+    "note": ""
+  },
+  "en_GB-jenny_dioco-medium": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "See URL",
+    "note": "https://github.com/dioco-group/jenny-tts-dataset"
+  },
+  "en_GB-northern_english_male-medium": {
+    "category": "CC-BY-SA - commercial OK, attribution + share-alike on redistributed data",
+    "commercial_safe": true,
+    "license": "CC-BY-SA 4.0 International",
+    "note": ""
+  },
+  "en_GB-semaine-medium": {
+    "category": "NON-commercial only - do not use commercially",
+    "commercial_safe": false,
+    "license": "http://creativecommons.org/licenses/by-nc-sa/4.0/",
+    "note": ""
+  },
+  "en_GB-southern_english_female-low": {
+    "category": "CC-BY-SA - commercial OK, attribution + share-alike on redistributed data",
+    "commercial_safe": true,
+    "license": "CC-BY-SA 4.0 International",
+    "note": ""
+  },
+  "en_GB-vctk-medium": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "https://creativecommons.org/licenses/by/4.0/",
+    "note": ""
+  },
+  "en_US-amy-low": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "See URL",
+    "note": "https://github.com/MycroftAI/mimic3-voices"
+  },
+  "en_US-amy-medium": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "See URL",
+    "note": "https://github.com/MycroftAI/mimic3-voices"
+  },
+  "en_US-arctic-medium": {
+    "category": "Verified commercial-OK (checked beyond the MODEL_CARD)",
+    "commercial_safe": true,
+    "license": "See LICENSE file",
+    "note": "CMU ARCTIC: BSD-style license, commercial use permitted (verified)"
+  },
+  "en_US-bryce-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "public domain",
+    "note": ""
+  },
+  "en_US-danny-low": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "See URL",
+    "note": "https://github.com/MycroftAI/mimic3-voices"
+  },
+  "en_US-hfc_female-medium": {
+    "category": "NON-commercial only - do not use commercially",
+    "commercial_safe": false,
+    "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en",
+    "note": ""
+  },
+  "en_US-hfc_male-medium": {
+    "category": "NON-commercial only - do not use commercially",
+    "commercial_safe": false,
+    "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en",
+    "note": ""
+  },
+  "en_US-joe-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "en_US-john-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "public domain",
+    "note": ""
+  },
+  "en_US-kathleen-low": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "en_US-kristin-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "public domain",
+    "note": ""
+  },
+  "en_US-kusal-medium": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "See URL",
+    "note": "https://github.com/MycroftAI/mimic2"
+  },
+  "en_US-l2arctic-medium": {
+    "category": "NON-commercial only - do not use commercially",
+    "commercial_safe": false,
+    "license": "https://creativecommons.org/licenses/by-nc/4.0/",
+    "note": ""
+  },
+  "en_US-lessac-high": {
+    "category": "NON-commercial only - do not use commercially",
+    "commercial_safe": false,
+    "license": "https://www.cstr.ed.ac.uk/projects/blizzard/2013/lessac_blizzard2013/license.html",
+    "note": ""
+  },
+  "en_US-lessac-low": {
+    "category": "NON-commercial only - do not use commercially",
+    "commercial_safe": false,
+    "license": "https://www.cstr.ed.ac.uk/projects/blizzard/2013/lessac_blizzard2013/license.html",
+    "note": ""
+  },
+  "en_US-lessac-medium": {
+    "category": "NON-commercial only - do not use commercially",
+    "commercial_safe": false,
+    "license": "https://www.cstr.ed.ac.uk/projects/blizzard/2013/lessac_blizzard2013/license.html",
+    "note": ""
+  },
+  "en_US-libritts-high": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "CC BY 4.0",
+    "note": ""
+  },
+  "en_US-libritts_r-medium": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "CC BY 4.0",
+    "note": ""
+  },
+  "en_US-ljspeech-high": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "public domain",
+    "note": ""
+  },
+  "en_US-ljspeech-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "public domain",
+    "note": ""
+  },
+  "en_US-mike-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "en_US-norman-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "public domain",
+    "note": ""
+  },
+  "en_US-reza_ibrahim-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "en_US-ryan-high": {
+    "category": "NON-commercial only - do not use commercially",
+    "commercial_safe": false,
+    "license": "CC BY-NC-SA 4.0",
+    "note": ""
+  },
+  "en_US-ryan-low": {
+    "category": "NON-commercial only - do not use commercially",
+    "commercial_safe": false,
+    "license": "CC BY-NC-SA 4.0",
+    "note": ""
+  },
+  "en_US-ryan-medium": {
+    "category": "NON-commercial only - do not use commercially",
+    "commercial_safe": false,
+    "license": "CC BY-NC-SA 4.0",
+    "note": ""
+  },
+  "en_US-sam-medium": {
+    "category": "Apache 2.0 - commercial OK, keep notice",
+    "commercial_safe": true,
+    "license": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+    "note": ""
+  },
+  "es_AR-daniela-high": {
+    "category": "CC-BY-SA - commercial OK, attribution + share-alike on redistributed data",
+    "commercial_safe": true,
+    "license": "Attribution-ShareAlike 4.0 International",
+    "note": ""
+  },
+  "es_ES-carlfm-x_low": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "Public domain",
+    "note": ""
+  },
+  "es_ES-davefx-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "es_ES-mls_10246-low": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "CC BY 4.0",
+    "note": ""
+  },
+  "es_ES-mls_9972-low": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "CC BY 4.0",
+    "note": ""
+  },
+  "es_ES-sharvard-medium": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "http://creativecommons.org/licenses/by/3.0/",
+    "note": ""
+  },
+  "es_MX-ald-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "http://unlicense.org",
+    "note": ""
+  },
+  "es_MX-ald-x_low": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "(no License field found)",
+    "note": ""
+  },
+  "es_MX-claude-high": {
+    "category": "Apache 2.0 - commercial OK, keep notice",
+    "commercial_safe": true,
+    "license": "apache-2.0",
+    "note": ""
+  },
+  "et_EE-news-medium": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "CC-BY (META-SHARE \"Available - Unrestricted Use\")",
+    "note": ""
+  },
+  "eu_ES-antton-medium": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "Creative Commons Attribution 4.0",
+    "note": ""
+  },
+  "eu_ES-maider-medium": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "Creative Commons Attribution 4.0",
+    "note": ""
+  },
+  "fa_IR-amir-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "fa_IR-ganji-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "fa_IR-ganji_adabi-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "fa_IR-gyro-medium": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "See URL",
+    "note": "https://github.com/gyroing"
+  },
+  "fa_IR-reza_ibrahim-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "fi_FI-harri-low": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "fi_FI-harri-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "fr_FR-gilles-low": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "fr_FR-mls-medium": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "CC-BY 4.0",
+    "note": ""
+  },
+  "fr_FR-mls_1840-low": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "CC BY 4.0",
+    "note": ""
+  },
+  "fr_FR-siwis-low": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "CC-BY 4.0",
+    "note": ""
+  },
+  "fr_FR-siwis-medium": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "CC-BY 4.0",
+    "note": ""
+  },
+  "fr_FR-tom-medium": {
+    "category": "Copyleft (GPL/AGPL) - legal nuance, review before commercial use",
+    "commercial_safe": false,
+    "license": "AGPLv3",
+    "note": "https://git.bksp.space/Tjiho/French-tts-model-piper"
+  },
+  "fr_FR-upmc-medium": {
+    "category": "CC-BY-SA - commercial OK, attribution + share-alike on redistributed data",
+    "commercial_safe": true,
+    "license": "http://creativecommons.org/licenses/by-sa/4.0/",
+    "note": ""
+  },
+  "he_IL-saspeech-medium": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "See dataset URL",
+    "note": "https://www.openslr.org/134 (gold standard)"
+  },
+  "hi_IN-pratham-medium": {
+    "category": "NON-commercial only - do not use commercially",
+    "commercial_safe": false,
+    "license": "http://creativecommons.org/licenses/by-nc-sa/4.0/",
+    "note": ""
+  },
+  "hi_IN-priyamvada-medium": {
+    "category": "NON-commercial only - do not use commercially",
+    "commercial_safe": false,
+    "license": "http://creativecommons.org/licenses/by-nc-sa/4.0/",
+    "note": ""
+  },
+  "hi_IN-rohan-medium": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "https://www.iitm.ac.in/donlab/indictts/downloads/license.pdf",
+    "note": "https://www.iitm.ac.in/donlab/indictts"
+  },
+  "hu_HU-anna-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "hu_HU-berta-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "hu_HU-imre-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "hy_AM-gor-medium": {
+    "category": "Copyleft (GPL/AGPL) - legal nuance, review before commercial use",
+    "commercial_safe": false,
+    "license": "GPL 2.0",
+    "note": "https://huggingface.co/davit312/piper-TTS-Armenian"
+  },
+  "id_ID-news_tts-medium": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "See URL",
+    "note": "https://www.kaggle.com/code/mpwolke/indic-tts-malayalam-speech-corpus"
+  },
+  "is_IS-bui-medium": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "See URL",
+    "note": "http://hdl.handle.net/20.500.12537/104"
+  },
+  "is_IS-salka-medium": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "See URL",
+    "note": "http://hdl.handle.net/20.500.12537/104"
+  },
+  "is_IS-steinn-medium": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "See URL",
+    "note": "http://hdl.handle.net/20.500.12537/104"
+  },
+  "is_IS-ugla-medium": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "See URL",
+    "note": "http://hdl.handle.net/20.500.12537/104"
+  },
+  "it_IT-paola-medium": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "See URL",
+    "note": "https://huggingface.co/datasets/paolapersico1/Voice-Dataset-Italian"
+  },
+  "it_IT-riccardo-x_low": {
+    "category": "Verified commercial-OK (checked beyond the MODEL_CARD)",
+    "commercial_safe": true,
+    "license": "See URL",
+    "note": "M-AILABS dataset: BSD 3-Clause, commercial use permitted (verified)"
+  },
+  "it_IT-serena-high": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "CC-BY-4.0",
+    "note": ""
+  },
+  "it_IT-serena-medium": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "CC-BY-4.0",
+    "note": ""
+  },
+  "ja_JA-hi_fi_captain-medium": {
+    "category": "NON-commercial only - do not use commercially",
+    "commercial_safe": false,
+    "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en",
+    "note": ""
+  },
+  "ka_GE-natia-medium": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "See LICENSE file",
+    "note": "http://github.com/Olga-Yakovleva/RHVoice"
+  },
+  "kk_KZ-iseke-x_low": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "CC-BY-4.0",
+    "note": ""
+  },
+  "kk_KZ-issai-high": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "CC-BY-4.0",
+    "note": ""
+  },
+  "kk_KZ-raya-x_low": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "CC-BY-4.0",
+    "note": ""
+  },
+  "ko_KR-kss-medium": {
+    "category": "NON-commercial only - do not use commercially",
+    "commercial_safe": false,
+    "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+    "note": ""
+  },
+  "ku_TR-berfin_renas-medium": {
+    "category": "NON-commercial only - do not use commercially",
+    "commercial_safe": false,
+    "license": "** [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) — free for non-commercial use with attribution; commercial use restricted due to [Blizzard 2013 base model](https://www.cstr.ed.ac.uk/projects/blizzard/2013/lessac_blizzard2013/license.html)",
+    "note": ""
+  },
+  "lb_LU-marylux-medium": {
+    "category": "NON-commercial only - do not use commercially",
+    "commercial_safe": false,
+    "license": "http://creativecommons.org/licenses/by-nc-sa/4.0/",
+    "note": ""
+  },
+  "lv_LV-aivars-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0 1.0 Universal",
+    "note": ""
+  },
+  "ml_IN-arjun-medium": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "See URL",
+    "note": "https://www.kaggle.com/code/mpwolke/indic-tts-malayalam-speech-corpus"
+  },
+  "ml_IN-meera-medium": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "See URL",
+    "note": "https://www.kaggle.com/code/mpwolke/indic-tts-malayalam-speech-corpus"
+  },
+  "mr_IN-google-medium": {
+    "category": "CC-BY-SA - commercial OK, attribution + share-alike on redistributed data",
+    "commercial_safe": true,
+    "license": "Attribution-ShareAlike 4.0 International",
+    "note": ""
+  },
+  "ne_NP-chitwan-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "ne_NP-google-medium": {
+    "category": "CC-BY-SA - commercial OK, attribution + share-alike on redistributed data",
+    "commercial_safe": true,
+    "license": "CC-BY-SA-4.0 International",
+    "note": ""
+  },
+  "ne_NP-google-x_low": {
+    "category": "CC-BY-SA - commercial OK, attribution + share-alike on redistributed data",
+    "commercial_safe": true,
+    "license": "CC-BY-SA-4.0 International",
+    "note": ""
+  },
+  "nl_BE-nathalie-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "nl_BE-nathalie-x_low": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "nl_BE-rdh-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0 1.0 Universal",
+    "note": ""
+  },
+  "nl_BE-rdh-x_low": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0 1.0 Universal",
+    "note": ""
+  },
+  "nl_NL-alex-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "nl_NL-mls-medium": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "CC-BY 4.0",
+    "note": ""
+  },
+  "nl_NL-mls_5809-low": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "CC BY 4.0",
+    "note": ""
+  },
+  "nl_NL-mls_7432-low": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "CC BY 4.0",
+    "note": ""
+  },
+  "nl_NL-pim-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "nl_NL-ronnie-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "no_NO-nvcc-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "no_NO-talesyntese-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "pl_PL-bass-high": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "(no License field found)",
+    "note": ""
+  },
+  "pl_PL-darkman-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "pl_PL-gosia-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "pl_PL-mc_speech-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "pl_PL-mls_6892-low": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "CC BY 4.0",
+    "note": ""
+  },
+  "pt_BR-cadu-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "pt_BR-edresson-low": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "CC BY 4.0",
+    "note": ""
+  },
+  "pt_BR-faber-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "pt_BR-jeff-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "pt_PT-tugão-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "ro_RO-mihai-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "ru_RU-denis-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "ru_RU-dmitri-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "ru_RU-irina-medium": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "Unknown",
+    "note": "https://github.com/RHVoice/RHVoice"
+  },
+  "ru_RU-ruslan-medium": {
+    "category": "NON-commercial only - do not use commercially",
+    "commercial_safe": false,
+    "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+    "note": ""
+  },
+  "sk_SK-lili-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "sl_SI-artur-medium": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "https://creativecommons.org/licenses/by/4.0/",
+    "note": ""
+  },
+  "sq_AL-edon-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "sr_RS-serbski_institut-medium": {
+    "category": "NON-commercial only - do not use commercially",
+    "commercial_safe": false,
+    "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+    "note": ""
+  },
+  "sv_SE-alma-medium": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "(no License field found)",
+    "note": "https://huggingface.co/yeagersthlm/piper-voice-sv-alma"
+  },
+  "sv_SE-lisa-medium": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "(no License field found)",
+    "note": ""
+  },
+  "sv_SE-nst-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "sw_CD-lanfrica-medium": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "See URL",
+    "note": "https://lanfrica.com/record/kiswahili-tts-dataset"
+  },
+  "te_IN-maya-medium": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "www.iitm.ac.in/donlab/indictts/downloads/license.pdf",
+    "note": "https://www.iitm.ac.in/donlab/indictts"
+  },
+  "te_IN-padmavathi-medium": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "CC-BY-4.0",
+    "note": ""
+  },
+  "te_IN-venkatesh-medium": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "CC-BY-4.0",
+    "note": ""
+  },
+  "th_TH-tsync2-medium": {
+    "category": "NON-commercial only - do not use commercially",
+    "commercial_safe": false,
+    "license": "CC BY-NC-SA 3.0 (**non-commercial**)",
+    "note": ""
+  },
+  "tr_TR-dfki-medium": {
+    "category": "NON-commercial only - do not use commercially",
+    "commercial_safe": false,
+    "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+    "note": ""
+  },
+  "uk_UA-lada-x_low": {
+    "category": "Apache 2.0 - commercial OK, keep notice",
+    "commercial_safe": true,
+    "license": "Apache 2.0",
+    "note": ""
+  },
+  "uk_UA-mykyta-high": {
+    "category": "Apache 2.0 - commercial OK, keep notice",
+    "commercial_safe": true,
+    "license": "Apache 2.0",
+    "note": ""
+  },
+  "uk_UA-oleksa-high": {
+    "category": "Apache 2.0 - commercial OK, keep notice",
+    "commercial_safe": true,
+    "license": "Apache 2.0",
+    "note": ""
+  },
+  "uk_UA-tetiana-high": {
+    "category": "Apache 2.0 - commercial OK, keep notice",
+    "commercial_safe": true,
+    "license": "Apache 2.0",
+    "note": ""
+  },
+  "uk_UA-ukrainian_tts-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "ur_PK-aegis_female-medium": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "(no License field found)",
+    "note": ""
+  },
+  "ur_PK-fasih-medium": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "(no License field found)",
+    "note": ""
+  },
+  "vi_VN-25hours_single-low": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "Unknown",
+    "note": "https://github.com/TensorSpeech/TensorFlowASR/blob/main/README.md#vietnamese"
+  },
+  "vi_VN-vais1000-medium": {
+    "category": "CC-BY - commercial OK, attribution required",
+    "commercial_safe": true,
+    "license": "https://creativecommons.org/licenses/by/4.0/",
+    "note": ""
+  },
+  "vi_VN-vivos-x_low": {
+    "category": "NON-commercial only - do not use commercially",
+    "commercial_safe": false,
+    "license": "CC BY-NC-SA 4.0",
+    "note": ""
+  },
+  "zh_CN-chaowen-medium": {
+    "category": "CC0 / Public domain - no restrictions",
+    "commercial_safe": true,
+    "license": "CC0",
+    "note": ""
+  },
+  "zh_CN-huayan-medium": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "Unknown",
+    "note": "https://github.com/PlayVoice/HuaYan_TTS"
+  },
+  "zh_CN-huayan-x_low": {
+    "category": "Needs manual review - unclear/unverified license",
+    "commercial_safe": false,
+    "license": "Unknown",
+    "note": "https://github.com/PlayVoice/HuaYan_TTS"
+  },
+  "zh_CN-xiao_ya-medium": {
+    "category": "NON-commercial only - do not use commercially",
+    "commercial_safe": false,
+    "license": "Non-commercial use (see https://www.data-baker.com/data/index/TNtts/)",
+    "note": ""
+  }
+}
