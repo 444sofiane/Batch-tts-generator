@@ -40,6 +40,14 @@ from pathlib import Path
 # when looking up/installing Argos packages, not for cache keys or MyMemory.
 ARGOS_CODE_ALIASES = {"no": "nb"}
 
+# MyMemory documents a 5 requests/second limit; a prefill run translating
+# many lines into one language back-to-back (e.g. every line into a
+# language Argos doesn't cover) can blow through that in well under a
+# second with no delay between calls, producing a wall of TooManyRequests
+# failures that the 3-attempt retry alone doesn't reliably survive.
+# Self-throttling to a bit under that (4/s) avoids triggering it at all.
+MYMEMORY_MIN_INTERVAL_SECONDS = 0.25
+
 
 class Translator:
     """Translate short texts and cache results across interrupted runs."""
@@ -63,6 +71,7 @@ class Translator:
         self._argos_available_packages = None
         self._argos_ready_pairs: dict[tuple[str, str], tuple[str, str]] = {}
         self._mymemory_translators = {}
+        self._mymemory_last_request_time: float | None = None
 
     @staticmethod
     def _init_argos():
@@ -212,10 +221,19 @@ class Translator:
             self._mymemory_translators[target_language] = translator
         return translator
 
+    def _throttle_mymemory(self) -> None:
+        if self._mymemory_last_request_time is not None:
+            elapsed = time.monotonic() - self._mymemory_last_request_time
+            remaining = MYMEMORY_MIN_INTERVAL_SECONDS - elapsed
+            if remaining > 0:
+                time.sleep(remaining)
+        self._mymemory_last_request_time = time.monotonic()
+
     def _translate_mymemory(self, text: str, target_language: str) -> str:
         last_error = None
         for attempt in range(3):
             try:
+                self._throttle_mymemory()
                 translated = self._get_mymemory_translator(target_language).translate(text)
                 if not translated:
                     raise RuntimeError("translation returned no text")
