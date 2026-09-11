@@ -1,12 +1,13 @@
 # Générateur de TTS par lot
 
 Génère plusieurs extraits audio et les concatène par groupe en fichiers
-`.wav`. Six moteurs sont disponibles : le modèle TTS PyTorch de Kyutai
+`.wav`. Sept moteurs sont disponibles : le modèle TTS PyTorch de Kyutai
 (`kyutai-labs/delayed-streams-modeling`, par défaut),
 [Tortoise-TTS](https://huggingface.co/spaces/Manmay/tortoise-tts) (via
 `--model tortoise`), [Breeze-TTS 2](https://huggingface.co/BreezeBlue/Breeze-TTS-2)
 (via `--model breeze`), [Piper](https://github.com/OHF-Voice/piper1-gpl) (via
-`--model piper`), [Coqui XTTS-v2](https://huggingface.co/coqui/XTTS-v2) (via
+`--model piper`), [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) (via
+`--model kokoro`), [Coqui XTTS-v2](https://huggingface.co/coqui/XTTS-v2) (via
 `--model xtts`), et l'API cloud de
 [Cartesia](https://play.cartesia.ai/text-to-speech) (via `--model cartesia`).
 
@@ -407,6 +408,57 @@ documentation publiée de l'API Python de Piper (`PiperVoice.load`,
 d'installation testée de `piper-tts` ici). Testez un seul extrait avant de
 lancer `--all-voices`.
 
+## Utiliser le moteur Kokoro
+
+Passez `--model kokoro` pour utiliser [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M),
+un petit modèle (82M paramètres) rapide et léger sur CPU — même classe de
+vitesse que Piper (moins d'une seconde par extrait court sur CPU, pas de
+GPU nécessaire), avec un rendu sensiblement plus naturel :
+
+- **8 langues, 54 voix** : anglais (américain/britannique), français,
+  japonais, mandarin, espagnol, hindi, italien, portugais brésilien.
+  `--language` reste limité à `en`/`fr` comme pour les autres moteurs
+  (choisit seulement une voix par défaut) ; passez n'importe quel code de
+  voix à `--voice` pour une autre langue du catalogue.
+- **Les voix sont des codes Kokoro** (par ex. `af_heart`, `ff_siwis`), au
+  format `<langue><genre>_<nom>` — la première lettre indique la langue
+  (`a`/`b` anglais américain/britannique, `f` français, `j` japonais, `z`
+  mandarin, `e` espagnol, `h` hindi, `i` italien, `p` portugais brésilien).
+  Voir [VOICES.md](https://huggingface.co/hexgrad/Kokoro-82M/blob/main/VOICES.md)
+  sur le dépôt du modèle pour la liste complète avec notes de qualité par voix.
+- `--kokoro-speed` (par défaut `1.0`) ajuste la vitesse de parole :
+  supérieur à `1` accélère, inférieur à `1` ralentit.
+- `--all-voices` parcourt les 54 voix ; `--all-fr` ne contient qu'une seule
+  voix (`ff_siwis`, la seule voix française du catalogue) ; `--all-eng`
+  parcourt l'anglais américain et britannique (28 voix).
+
+**Licence — toutes les voix sont utilisables commercialement**, contrairement
+à Piper/Kyutai : le dépôt est sous licence Apache 2.0 dans son ensemble, et 5
+voix sur 54 (4 japonaises, 1 française : `ff_siwis`, la voix française par
+défaut) sont individuellement sous CC BY (jeux de données Koniwa et SIWIS) —
+usage commercial autorisé également, simple obligation d'attribution.
+Aucune voix du catalogue n'est non-commerciale, donc pas de flag
+`--kokoro-commercial-safe` (contrairement à `--piper-commercial-safe`/
+`--kyutai-commercial-safe`) : rien à exclure.
+
+**Installation :** dépendance légère (pas de gros stack ML au-delà de
+`torch`, déjà installé à l'étape 1), s'installe proprement dans le `.venv`
+principal :
+
+```bash
+uv pip install kokoro
+```
+
+```bash
+python generate_and_concat.py input.example.txt --model kokoro --voice ff_siwis
+```
+
+**Testé de bout en bout** dans cet environnement de développement :
+génération réussie en anglais et en français (voix par défaut), et un
+`--all-eng --voice-limit 3` confirmant la boucle multi-voix et le
+partage du modèle chargé entre langues (le modèle n'est chargé qu'une
+fois, seul le pipeline de phonémisation change par langue).
+
 ## Utiliser le moteur XTTS-v2
 
 Passez `--model xtts` pour utiliser [Coqui XTTS-v2](https://huggingface.co/coqui/XTTS-v2),
@@ -581,7 +633,7 @@ generate_and_concat.py ...` fonctionne toujours exactement comme avant).
   reprenable, et écriture du manifeste des voix, partagées par tous les
   moteurs.
 - `tts_batch/backends/` — un fichier par moteur TTS (`kyutai.py`,
-  `tortoise.py`, `breeze.py`, `piper.py`, `xtts.py`, `cartesia.py`), chacun possédant ses propres
+  `tortoise.py`, `breeze.py`, `piper.py`, `kokoro.py`, `xtts.py`, `cartesia.py`), chacun possédant ses propres
   options CLI, sa validation d'arguments et sa logique de génération.
   `base.py` documente l'interface qu'un nouveau moteur doit implémenter.
   `piper_voice_licenses.json` est l'audit de licences par voix consommé par

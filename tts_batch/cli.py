@@ -38,7 +38,7 @@ def build_parser() -> argparse.ArgumentParser:
         choices=sorted(kyutai.DEFAULT_VOICE_BY_LANGUAGE),
         default="en",
         help=(
-            "For --model kyutai/piper: picks a default voice for this language "
+            "For --model kyutai/piper/kokoro: picks a default voice for this language "
             "(ignored if --voice is set). For --model cartesia/xtts: passed straight "
             "through as the API's/model's language parameter. Ignored by --model "
             "tortoise/breeze (English-only; --language fr is rejected for those)."
@@ -58,8 +58,9 @@ def build_parser() -> argparse.ArgumentParser:
             "play.cartesia.ai). For --model piper: a Piper voice id (e.g. "
             "'en_US-arctic-medium'), overrides --language same as kyutai. For --model "
             "xtts: a built-in studio speaker name (e.g. 'Claribel Dervla'); mutually "
-            "exclusive with --xtts-speaker-wav. Required for tortoise/cartesia unless "
-            "--all-voices is set."
+            "exclusive with --xtts-speaker-wav. For --model kokoro: a Kokoro voice code "
+            "(e.g. 'af_heart'), overrides --language same as kyutai. Required for "
+            "tortoise/cartesia unless --all-voices is set."
         ),
     )
     parser.add_argument(
@@ -68,7 +69,8 @@ def build_parser() -> argparse.ArgumentParser:
         default="cpu",
         help=(
             "Device to run on (default: cpu; --model breeze always uses CUDA). "
-            "torch device for kyutai/tortoise/breeze/xtts, onnxruntime CPU-vs-CUDA for piper."
+            "torch device for kyutai/tortoise/breeze/xtts/kokoro, onnxruntime CPU-vs-CUDA "
+            "for piper."
         ),
     )
     parser.add_argument(
@@ -80,10 +82,10 @@ def build_parser() -> argparse.ArgumentParser:
         help=(
             "Generate every group for every voice, instead of just one: every voice "
             "in the voice repo (901+ voices) for --model kyutai, every voice in the "
-            "Piper voice catalog for --model piper, every built-in preset voice for "
-            "--model tortoise, every built-in studio speaker (~58) for --model xtts, "
-            "or every voice in your account's library for --model cartesia. Ignores "
-            "--voice/--language. Writes to "
+            "Piper voice catalog for --model piper, every one of the 54 built-in voices "
+            "for --model kokoro, every built-in preset voice for --model tortoise, every "
+            "built-in studio speaker (~58) for --model xtts, or every voice in your "
+            "account's library for --model cartesia. Ignores --voice/--language. Writes to "
             "<output-dir>/<group><e if enhanced><voice index>.wav, with a "
             "voices_manifest.txt mapping each index back to its source voice. "
             "Resumable: rerunning the same command skips groups already written."
@@ -95,7 +97,8 @@ def build_parser() -> argparse.ArgumentParser:
         help=(
             f"Like --all-voices, but restricted to voices under '{kyutai.FR_VOICES_PREFIX}' "
             "(the French voices) instead of the whole repo, for --model kyutai; or to "
-            "French voices in the Piper catalog for --model piper."
+            "French voices in the Piper/Kokoro catalogs for --model piper/kokoro (a "
+            "single voice, 'ff_siwis', for kokoro)."
         ),
     )
     parser.add_argument(
@@ -105,7 +108,8 @@ def build_parser() -> argparse.ArgumentParser:
             f"Like --all-voices, but restricted to voices under "
             f"{', '.join(repr(p) for p in kyutai.EN_VOICES_PREFIX)} (the English "
             "Expresso/VCTK/EARS voices) instead of the whole repo, for --model kyutai; "
-            "or to English voices in the Piper catalog for --model piper."
+            "or to English voices in the Piper/Kokoro catalogs for --model piper/kokoro "
+            "(American+British English for kokoro)."
         ),
     )
     parser.add_argument(
